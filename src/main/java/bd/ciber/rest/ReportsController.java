@@ -29,7 +29,7 @@ public class ReportsController {
 	@Value( "${resultsFolder}" )
 	String resultsFolder;
 	
-	@RequestMapping("/patients/*")
+	@RequestMapping("/reports/*")
 	public Map<String, List<Map<String, String>>> listReports() {
 		Map<String, List<Map<String, String>>> result = new HashMap<String, List<Map<String, String>>>();
 		File dir = new File(this.resultsFolder);
