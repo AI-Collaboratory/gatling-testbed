@@ -16,15 +16,17 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Produces a sorted manifest of available for each simulation.
  * @author greg
  *
  */
-@Controller
+@RestController
+@RequestMapping("/reports/")
 public class ReportsController {
 	private static final Logger LOG = LoggerFactory.getLogger(ReportsController.class);
 	
@@ -33,20 +35,19 @@ public class ReportsController {
 	@Value( "${resultsFolder}" )
 	String resultsFolder;
 	
-	@RequestMapping("/reports/")
+	@RequestMapping(method = RequestMethod.GET,headers="Accept=application/json")
 	public Map<String, List<Map<String, String>>> listReports() {
-		LOG.warn("resultsFolder"+resultsFolder);
 		Map<String, List<Map<String, String>>> result = new HashMap<String, List<Map<String, String>>>();
 		File dir = new File(this.resultsFolder);
 		for(File entry : dir.listFiles()) {
 			if(!entry.isDirectory()) continue;
 			String simulationName = entry.getName().substring(0, entry.getName().indexOf("-"));
-			String timestamp = entry.getName().substring(entry.getName().indexOf("-")+1, entry.getName().length()-1);
-			int ts = Integer.parseInt(timestamp);
-			Date dt = new Date(new Timestamp(ts).getTime());
+			String timestamp = entry.getName().substring(entry.getName().indexOf("-")+1, entry.getName().length());
+			long ts = Long.parseLong(timestamp);
+			Date dt = new Date(ts);
 			String formattedDate = FORMAT.format(dt);
 			Map<String, String> myreport = new HashMap<String, String>();
-			myreport.put("foldername", entry.getName());
+			myreport.put("url", "/testbed/results/"+entry.getName()+"/index.html");
 			myreport.put("timestamp", timestamp);
 			myreport.put("date", formattedDate);
 			List<Map<String, String>> reports = null;
