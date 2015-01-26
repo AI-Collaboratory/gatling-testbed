@@ -13,12 +13,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration("classpath:/service-context.xml")
 public class SimulationTest {
 	
-	@Resource
+	//@Resource
 	GatlingSimulationRunner runner;
 
 	@Test
 	public void testPolyglot() {
-		runner.run("bd.ciber.gatling.PolyglotSimulation");
+		//runner.run("bd.ciber.gatling.PolyglotSimulation");
 	}
 
 }

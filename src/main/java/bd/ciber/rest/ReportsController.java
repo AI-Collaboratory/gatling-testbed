@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,13 +26,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 public class ReportsController {
+	private static final Logger LOG = LoggerFactory.getLogger(ReportsController.class);
+	
 	private static DateFormat FORMAT = SimpleDateFormat.getDateInstance();
 
 	@Value( "${resultsFolder}" )
 	String resultsFolder;
 	
-	@RequestMapping("/reports/*")
+	@RequestMapping("/reports/")
 	public Map<String, List<Map<String, String>>> listReports() {
+		LOG.warn("resultsFolder"+resultsFolder);
 		Map<String, List<Map<String, String>>> result = new HashMap<String, List<Map<String, String>>>();
 		File dir = new File(this.resultsFolder);
 		for(File entry : dir.listFiles()) {

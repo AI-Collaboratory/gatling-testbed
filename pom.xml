@@ -31,14 +31,12 @@
 	</pluginRepositories>
 
 	<properties>
-		<maven.compiler.source>1.7</maven.compiler.source>
-		<maven.compiler.target>1.6</maven.compiler.target>
 		<spring.version>4.1.3.RELEASE</spring.version>
-		<scala.version>2.10.4</scala.version>
+		<scala.version>2.11.3</scala.version>
 		<encoding>UTF-8</encoding>
 
-		<gatling.version>2.0.0</gatling.version>
-		<gatling-highcharts.version>2.0.0</gatling-highcharts.version>
+		<gatling.version>2.1.2</gatling.version>
+		<gatling-highcharts.version>2.1.2</gatling-highcharts.version>
 
 		<scala-maven-plugin.version>3.1.6</scala-maven-plugin.version>
 		<scala.version.old>2.10.4</scala.version.old>
@@ -73,6 +71,11 @@
 			</dependency>
 			<dependency>
 				<groupId>org.springframework</groupId>
+				<artifactId>spring-context</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
 				<artifactId>spring-webmvc</artifactId>
 				<version>${spring.version}</version>
 			</dependency>
@@ -92,6 +95,12 @@
 		<dependency>
 			<groupId>io.gatling</groupId>
 			<artifactId>gatling-app</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>io.gatling</groupId>
@@ -107,17 +116,37 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
-		<sourceDirectory>src/main/scala</sourceDirectory>
-		<testSourceDirectory>src/test/scala</testSourceDirectory>
+		<finalName>testbed</finalName>
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -138,6 +167,21 @@
 				<artifactId>scala-maven-plugin</artifactId>
 				<executions>
 					<execution>
+						<id>scala-compile-first</id>
+						<phase>process-resources</phase>
+						<goals>
+						    <goal>add-source</goal>
+							<goal>compile</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>scala-test-compile</id>
+						<phase>process-test-resources</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+					</execution>
+<!-- 					<execution>
 						<goals>
 							<goal>compile</goal>
 							<goal>testCompile</goal>
@@ -152,13 +196,37 @@
 								<arg>-language:postfixOps</arg>
 							</args>
 						</configuration>
-					</execution>
+					</execution> -->
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.2</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+<!-- 				<executions>
+					<execution>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+					</execution>
+				</executions> -->
 			</plugin>
 			<plugin>
 				<groupId>io.gatling</groupId>
 				<artifactId>gatling-maven-plugin</artifactId>
 			</plugin>
+			<plugin>
+        		<groupId>org.apache.maven.plugins</groupId>
+        		<artifactId>maven-war-plugin</artifactId>
+        		<configuration>
+          			<failOnMissingWebXml>false</failOnMissingWebXml>
+        		</configuration>
+      		</plugin>
 		</plugins>
 	</build>
 	<packaging>war</packaging>

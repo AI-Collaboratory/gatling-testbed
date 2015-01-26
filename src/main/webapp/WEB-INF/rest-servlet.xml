@@ -7,16 +7,14 @@
 	<context:property-placeholder location="classpath:testbed.properties" />
 	
 	<import resource="classpath:service-context.xml"/>
-	
+	<mvc:default-servlet-handler />
+	<mvc:annotation-driven />
 	<context:component-scan base-package="bd.ciber.rest" />
 	
 	<mvc:resources location="/static/" mapping="/static/**" />
-	<mvc:resources location="index.html" mapping="index.html" />
 	<mvc:resources location="${resultsFolder}/" mapping="/results/**" />
-	<mvc:default-servlet-handler />
-	<mvc:annotation-driven />
 
-	<bean
+ 	<bean
 		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
 		<property name="prefix">
 			<value>/WEB-INF/</value>
