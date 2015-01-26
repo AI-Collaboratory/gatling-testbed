@@ -43,7 +43,7 @@ class PolyglotSimulation extends Simulation {
         .formUpload("file", "${path}")
         .check(bodyString.exists.saveAs("conversionResult")))
 
-  val sampleFiles = new java.io.File("src/test/resources/sample-files").listFiles().toIterator
+  val sampleFiles = new java.io.File("/opt/testbed/sample-files").listFiles().toIterator
   val feeder = Iterator.continually(Map("path" -> (sampleFiles.filter(_.isFile).next.getAbsolutePath)))
 
   val scnAlloyToBD = scenario("browndog")
