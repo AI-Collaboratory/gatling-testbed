@@ -118,25 +118,25 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="static/js/bootstrap.min.js"></script>
     <script src="static/js/docs.min.js"></script>
-        <script type="text/javascript">
-    	var dapResults;
+    <script type="text/javascript">
+    	var simulationResults;
 
-    	d3.json("rest/PolyglotTestResult", function(error, json) {
+    	d3.json("/testbed/rest/reports/", function(error, json) {
     	  if (error) return console.warn(error);
-    	  dapResults = json;
+    	  simulationResults = json;
     	  visualizeit();
     	});
 
     	function visualizeit() {
-
     		 // create the table header
     		var thead = d3.select("thead").selectAll("th")
-    		.data(d3.keys(dapResults[0]))
+    		.data(d3.keys(simulationResults["documents2pdfsimulation"][0]))
     		.enter().append("th").text(function(d){return d});
     		// fill the table
+    		
     		// create rows
     		var tr = d3.select("tbody").selectAll("tr")
-    		.data(dapResults).enter().append("tr")
+    		.data(simulationResults["documents2pdfsimulation"]).enter().append("tr")
 
     		// cells
     		var td = tr.selectAll("td")

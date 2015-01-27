@@ -9,7 +9,7 @@ import io.gatling.core.validation.Validation
 import io.gatling.core.validation.Validation
 import io.gatling.core.validation.Validation
 
-class PolyglotSimulation extends Simulation {
+class Documents2PDFSimulation extends Simulation {
   val alloy: AlloySimulation = new AlloySimulation()
   val dapUrl = "http://dap1.ncsa.illinois.edu:8184/"
   val httpProtocol = http.baseURL(dapUrl).disableWarmUp

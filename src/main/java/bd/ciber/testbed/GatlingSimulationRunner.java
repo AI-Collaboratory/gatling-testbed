@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import bd.ciber.gatling.PolyglotSimulation;
+import bd.ciber.gatling.Documents2PDFSimulation;
 import scala.Option;
 
 public class GatlingSimulationRunner {
@@ -30,7 +30,7 @@ public class GatlingSimulationRunner {
 	
 	public void run(String simulation) {
 		// Arguments
-		Option simul = Option.apply(PolyglotSimulation.class);
+		Option simul = Option.apply(Documents2PDFSimulation.class);
 		List<String> args = new ArrayList<String>();
 		args.addAll(asList("-m", // mute prompts
 		"-df", dataFolder,
