@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReportsController {
 	private static final Logger LOG = LoggerFactory.getLogger(ReportsController.class);
 	
-	private static DateFormat FORMAT = SimpleDateFormat.getDateInstance();
+	private static DateFormat FORMAT = SimpleDateFormat.getDateTimeInstance();
 
 	@Value( "${resultsFolder}" )
 	String resultsFolder;
@@ -47,7 +47,7 @@ public class ReportsController {
 			Date dt = new Date(ts);
 			String formattedDate = FORMAT.format(dt);
 			Map<String, String> myreport = new HashMap<String, String>();
-			myreport.put("url", "/testbed/results/"+entry.getName()+"/index.html");
+			myreport.put("url", "/testbed/rest/results/"+entry.getName()+"/index.html");
 			myreport.put("timestamp", timestamp);
 			myreport.put("date", formattedDate);
 			List<Map<String, String>> reports = null;
