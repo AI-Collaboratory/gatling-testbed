@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.Set;
 
@@ -14,14 +15,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.util.JSON;
 
-public class GatlingResults {
+public class MongoResultsCollector {
 	private static final Logger LOG = LoggerFactory
-			.getLogger(GatlingResults.class);
+			.getLogger(MongoResultsCollector.class);
 
 	public static final String DBNAME = "testbed";
 	public static final String GLOBALSTATS_COLL = "global_stats";
@@ -51,41 +55,47 @@ public class GatlingResults {
 	}
 
 	/**
-	 * Collect the results of a simulation into MongoDB.
+	 * Collect the results of the latest N simulations into MongoDB. Will
+	 * check for prior collection of each simulation.
 	 * 
-	 * @param simulation
+	 * @param foldersToExamine looks at the latest N folders
 	 */
-	public void collect(String simulationClass) {
-		String simName = simulationClass.substring(
-				simulationClass.lastIndexOf('.'), simulationClass.length())
-				.toLowerCase();
-		File resFolder = getLatestResultsFolders(1)[0];
-		String fldNm = resFolder.getName();
-		String resSimNm = fldNm.substring(0, fldNm.indexOf('-')).toLowerCase();
-		if (simName.equals(resSimNm)) { // found it
-			// TODO check that folder is new
+	public void collectLatest(int foldersToExamine) {
+		File[] resFolders = getLatestResultsFolders(foldersToExamine);
+		for(File resFolder : resFolders) {
+			String fldNm = resFolder.getName();
+			String simName = fldNm.substring(0, fldNm.indexOf('-')).toLowerCase();
+
 			// See if collection contains the resFolder yet?
-			collectGlobalStats(simName, resFolder);
+			collectGlobalStats(resFolder, simName);
 			// TODO add KOs from simulation.log
 		}
 	}
 
-	private void collectGlobalStats(String simName, File resFolder) {
+	private void collectGlobalStats(File resFolder, String simName) {
 		try {
 			MongoClient mongoClient = new MongoClient();
-			
-			
 			DB testbedDB = mongoClient.getDB("testbed");
-
-			// add js/global_stats.json to mongo
+			DBCollection stats = testbedDB.getCollection(GLOBALSTATS_COLL);
+			// check that results folder is not already collected
+			DBObject simRef = new BasicDBObject("resultsFolder", resFolder.getName());
+			DBCursor cur = stats.find(simRef);
+			if(cur.count() > 0) {
+				LOG.debug("Already logged the results in {}", resFolder.getName());
+				return;
+			}
+			
+			// add js/global_stats.json to document
 			File globalStatsFile = new File(resFolder,
 					"js/global_stats.json");
 			String statsStr = FileUtils.readFileToString(globalStatsFile);
 			DBObject statsObject = (DBObject) JSON.parse(statsStr);
-			// TODO add timestamp
+			// add timestamp
+			Date modified = new Date(resFolder.lastModified());
+			statsObject.put("datetime", modified);
 			statsObject.put("simulation", simName);
 			statsObject.put("resultsFolder", resFolder.getName());
-			testbedDB.getCollection(GLOBALSTATS_COLL).insert(statsObject);
+			stats.insert(statsObject);
 		} catch (UnknownHostException e) {
 			LOG.error("Unexpected", e);
 			throw new Error(e);
@@ -95,9 +105,11 @@ public class GatlingResults {
 		}
 	}
 
-	// simulation log KO example
+	// /simulation.log KO example
 	// testAlloyCrawlsToData 4560041668039034658-0 REQUEST request_container
 	// 1422461824410 1422461824747 1422461825163 1422461825163 KO error string
+	
+	
 	public class SortFilter implements FileFilter {
 		final LinkedList<File> topFiles;
 		private final int n;

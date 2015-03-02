@@ -43,7 +43,7 @@ public class GatlingSimulationRunner {
 	String[] simulations;
 
 	@Autowired
-	private GatlingResults gatlingResults;
+	private MongoResultsCollector mongoResultsCollector;
 
 	public void run(String simulation) throws ClassNotFoundException {
 		// Arguments
@@ -64,6 +64,7 @@ public class GatlingSimulationRunner {
 	@Scheduled(initialDelay = 30000, fixedDelay = 300000)
 	public void runAll() throws InterruptedException {
 		boolean first = true;
+		int count = 0;
 		for (String simulation : this.simulations) {
 			if (first) {
 				first = false;
@@ -71,10 +72,12 @@ public class GatlingSimulationRunner {
 				Thread.sleep(5 * 60 * 1000);
 			}
 			try {
+				count++;
 				run(simulation);
-				gatlingResults.collect(simulation);
 			} catch (ClassNotFoundException e) {
 				LOG.error("Cannot find simulation class", e);
 			}
 		}
+		mongoResultsCollector.collectLatest(count);
 	}
+}
