@@ -11,11 +11,8 @@
 
 	<bean id="gatlingSimulationRunner" class="bd.ciber.testbed.GatlingSimulationRunner"/>
 	
-	<bean id="mongoResultsCollector" class="bd.ciber.testbed.MongoResultsCollector"/>
-	
-	<task:scheduler id="myScheduler" pool-size="1" />
-	<task:scheduled-tasks scheduler="myScheduler">
-		<task:scheduled ref="gatlingSimulationRunner" method="runAll" initial-delay="30000" fixed-delay="300000"/>
-	</task:scheduled-tasks>
+	<bean id="mongoResultsCollector" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="bd.ciber.testbed.MongoResultsCollector"/>
+	</bean>
 	
 </beans>

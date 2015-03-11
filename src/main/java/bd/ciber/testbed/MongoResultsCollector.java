@@ -6,7 +6,10 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import static bd.ciber.testbed.MongoKeys.*;
 
 import javax.annotation.PostConstruct;
 
@@ -14,6 +17,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -23,13 +27,10 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.util.JSON;
 
+@Component
 public class MongoResultsCollector {
 	private static final Logger LOG = LoggerFactory
 			.getLogger(MongoResultsCollector.class);
-
-	public static final String DBNAME = "testbed";
-	public static final String GLOBALSTATS_COLL = "global_stats";
-	public static final String REQUEST_KO_COLL = "request_ko";
 	
 	@Value("${resultsFolder}")
 	private String resultsFolder;
@@ -40,10 +41,10 @@ public class MongoResultsCollector {
 		MongoClient mongoClient = new MongoClient();
 		DB testbedDB = mongoClient.getDB(DBNAME);
 		Set<String> colls = testbedDB.getCollectionNames();
-		if (colls.contains(GLOBALSTATS_COLL))
-			testbedDB.createCollection(GLOBALSTATS_COLL, null);
-		if (colls.contains(REQUEST_KO_COLL))
-			testbedDB.createCollection(REQUEST_KO_COLL, null);
+		if (!colls.contains(SIMULATION_RESULTS_COLL)) {
+			DBCollection res = testbedDB.createCollection(SIMULATION_RESULTS_COLL, null);
+			res.createIndex(new BasicDBObject(DATETIME, 1));
+		}
 	}
 
 	public File[] getLatestResultsFolders(int howMany) {
@@ -65,24 +66,22 @@ public class MongoResultsCollector {
 		for(File resFolder : resFolders) {
 			String fldNm = resFolder.getName();
 			String simName = fldNm.substring(0, fldNm.indexOf('-')).toLowerCase();
-
-			// See if collection contains the resFolder yet?
-			collectGlobalStats(resFolder, simName);
-			// TODO add KOs from simulation.log
+			collectSimulationResult(resFolder, simName);
 		}
 	}
 
-	private void collectGlobalStats(File resFolder, String simName) {
+	private void collectSimulationResult(File resFolder, String simName) {
 		try {
 			MongoClient mongoClient = new MongoClient();
-			DB testbedDB = mongoClient.getDB("testbed");
-			DBCollection stats = testbedDB.getCollection(GLOBALSTATS_COLL);
+			DB testbedDB = mongoClient.getDB(DBNAME);
+			DBCollection stats = testbedDB.getCollection(SIMULATION_RESULTS_COLL);
 			// check that results folder is not already collected
-			DBObject simRef = new BasicDBObject("resultsFolder", resFolder.getName());
-			DBCursor cur = stats.find(simRef);
-			if(cur.count() > 0) {
-				LOG.debug("Already logged the results in {}", resFolder.getName());
-				return;
+			DBObject simRef = new BasicDBObject(GATLING_RESULTS_FOLDER, resFolder.getName());
+			try(DBCursor cur = stats.find(simRef)) {
+				if(cur.count() > 0) {
+					LOG.debug("Already logged the results in {}", resFolder.getName());
+					return;
+				}
 			}
 			
 			// add js/global_stats.json to document
@@ -90,11 +89,21 @@ public class MongoResultsCollector {
 					"js/global_stats.json");
 			String statsStr = FileUtils.readFileToString(globalStatsFile);
 			DBObject statsObject = (DBObject) JSON.parse(statsStr);
-			// add timestamp
+			
 			Date modified = new Date(resFolder.lastModified());
-			statsObject.put("datetime", modified);
-			statsObject.put("simulation", simName);
-			statsObject.put("resultsFolder", resFolder.getName());
+			statsObject.put(DATETIME, modified);
+			statsObject.put(SIMULATION_NAME, simName);
+			statsObject.put(GATLING_RESULTS_FOLDER, resFolder.getName());
+			
+			// add errors (KOs) from simulation.log
+			File simulationLog = new File(resFolder, "simulation.log");
+			try {
+				List<Map<String, Object>> errors = SimulationLogParser.parse(simulationLog);
+				statsObject.put(ERRORS, errors);
+			} catch(IOException e) {
+				LOG.error("Unexpected IO Errors reading simulation log", e);
+			}
+			
 			stats.insert(statsObject);
 		} catch (UnknownHostException e) {
 			LOG.error("Unexpected", e);
@@ -103,12 +112,7 @@ public class MongoResultsCollector {
 			LOG.error("Unexpected", e);
 			throw new Error(e);
 		}
-	}
-
-	// /simulation.log KO example
-	// testAlloyCrawlsToData 4560041668039034658-0 REQUEST request_container
-	// 1422461824410 1422461824747 1422461825163 1422461825163 KO error string
-	
+	}	
 	
 	public class SortFilter implements FileFilter {
 		final LinkedList<File> topFiles;

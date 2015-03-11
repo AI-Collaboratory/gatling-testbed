@@ -10,6 +10,7 @@ import io.gatling.core.validation.Validation
 import io.gatling.core.validation.Validation
 
 class Documents2PDFSimulation extends Simulation {
+  val samplesFolder = System.getProperty("samplesFolder");
   val alloy: AlloySimulation = new AlloySimulation()
   val dapUrl = "http://dap1.ncsa.illinois.edu:8184/"
   val httpProtocol = http.baseURL(dapUrl).disableWarmUp
@@ -43,7 +44,7 @@ class Documents2PDFSimulation extends Simulation {
         .formUpload("file", "${path}")
         .check(bodyString.exists.saveAs("conversionResult")))
 
-  val sampleFiles = new java.io.File("/opt/testbed/sample-files").listFiles().toIterator
+  val sampleFiles = new java.io.File(samplesFolder).listFiles().toIterator
   val feeder = Iterator.continually(Map("path" -> (sampleFiles.filter(_.isFile).next.getAbsolutePath)))
 
   val scnAlloyToBD = scenario("browndog")
@@ -56,5 +57,5 @@ class Documents2PDFSimulation extends Simulation {
     .exec(assertPDFConvertable)
     .exec(convertToPDF)
 
-  setUp(scnFeedToBD.inject(atOnceUsers(5))).protocols(httpProtocol)
+  setUp(scnFeedToBD.inject(atOnceUsers(4))).protocols(httpProtocol)
 }
