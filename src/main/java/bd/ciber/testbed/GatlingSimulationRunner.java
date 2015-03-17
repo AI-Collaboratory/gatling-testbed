@@ -70,7 +70,8 @@ public class GatlingSimulationRunner {
 	}
 
 	// @Scheduled(cron="*/10 * * * * *")
-	@Scheduled(initialDelay = 30000, fixedDelay = 300000)
+	// every half-hour
+	@Scheduled(initialDelay = 30000, fixedDelay = 1800000)
 	public void runAll() throws InterruptedException {
 		boolean first = true;
 		int count = 0;
