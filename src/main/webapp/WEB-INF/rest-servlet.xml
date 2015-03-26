@@ -5,23 +5,36 @@
         http://www.springframework.org/schema/context/spring-context-3.0.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
 
 	<context:property-placeholder location="classpath:testbed.properties" />
-	
-	<import resource="classpath:service-context.xml"/>
+
+	<import resource="classpath:service-context.xml" />
 	<mvc:default-servlet-handler />
 	<mvc:annotation-driven />
 	<context:component-scan base-package="bd.ciber.rest" />
-	
+
 	<mvc:resources mapping="/static/**" location="/static/" />
 	<mvc:resources mapping="/results/**" location="file:${resultsFolder}/" />
 
- 	<bean
-		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-		<property name="prefix">
-			<value>/WEB-INF/</value>
-		</property>
-		<property name="suffix">
-			<value>.jsp</value>
+	<!-- jmustache -->
+	<bean id="viewResolver"
+		class="org.springframework.web.servlet.view.mustache.MustacheViewResolver">
+		<property name="prefix" value="/WEB-INF/views/" />
+		<property name="suffix" value=".html" />
+		<property name="cache" value="false" />
+		<property name="templateFactory">
+			<bean
+				class="org.springframework.web.servlet.view.mustache.jmustache.JMustacheTemplateFactory">
+				<property name="escapeHTML" value="true" />
+				<property name="standardsMode" value="false" />
+				<property name="templateLoader">
+					<bean
+						class="org.springframework.web.servlet.view.mustache.jmustache.JMustacheTemplateLoader" />
+				</property>
+			</bean>
 		</property>
 	</bean>
+
+	<!-- <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"> 
+		<property name="prefix"> <value>/WEB-INF/</value> </property> <property name="suffix"> 
+		<value>.jsp</value> </property> </bean> -->
 
 </beans>

@@ -1,5 +1,7 @@
 package bd.ciber.testbed;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
@@ -26,7 +28,18 @@ public class CiberIndex {
 		this.mongoClient = mongoClient;
 	}
 	
-	public Iterator<Map<String, String>> get(int howMany, boolean randomlySample, Integer minSize, Integer maxSize, String... extension) {
+	/**
+	 * Iterates through a sample of the CI-BER data. Will return a consistent
+	 * sample whenever a same randomSeed is supplied.
+	 * then 
+	 * @param howMany limit the number of results
+	 * @param randomSeed an offset for sampling at random, or null for new random sample.
+	 * @param minSize minimum size of files in bytes
+	 * @param maxSize maximum size of files in bytes
+	 * @param extension the desired file extensions, if any
+	 * @return a Gatling-style iterator of mapped "fullpath"
+	 */
+	public Iterator<String> get(int howMany, Float randomSeed, Integer minSize, Integer maxSize, String... extension) {
 		DB ciberCatDB = mongoClient.getDB(CiberIndexKeys.DB.key());
 		DBCollection coll = ciberCatDB.getCollection(CiberIndexKeys.FILES_COLL.key());
 		
@@ -40,22 +53,22 @@ public class CiberIndex {
 		if(maxSize != null) {
 			qb.and(CiberIndexKeys.F_SIZE.key()).lessThanEquals(maxSize);
 		}
-		if(randomlySample) {
-			qb.and(CiberIndexKeys.F_RANDOM.key()).greaterThan(Math.random());
+		if(randomSeed == null) {
+			randomSeed = new Float(Math.random());
 		}
+		qb.and(CiberIndexKeys.F_RANDOM.key()).greaterThan(randomSeed.floatValue());
+		
 		DBCursor cursor = coll.find(qb.get(), fullpathSpec);
-		if(randomlySample) {
-			cursor.sort(new BasicDBObject(CiberIndexKeys.F_RANDOM.key(), 1));
-		}
+		cursor.sort(new BasicDBObject(CiberIndexKeys.F_RANDOM.key(), 1));
 		cursor.limit(howMany);
-		Iterator<Map<String, String>> result = new MongoIterator(cursor);
+		Iterator<String> result = new MongoPathIterator(cursor);
 		return result;
 	}
 	
-	public static class MongoIterator implements Iterator<Map<String, String>> {
+	public static class MongoPathIterator implements Iterator<String>, Closeable {
 		DBCursor cursor;
 		
-		public MongoIterator(DBCursor cursor) {
+		public MongoPathIterator(DBCursor cursor) {
 			this.cursor = cursor;
 		}
 		
@@ -65,11 +78,15 @@ public class CiberIndex {
 		}
 
 		@Override
-		public Map<String, String> next() {
+		public String next() {
 			DBObject obj = cursor.next();
 			String fullpath = (String)obj.get(CiberIndexKeys.F_FULLPATH.key());
-			Map<String, String> result = Collections.singletonMap("fullpath", fullpath);
-			return result;
+			return fullpath;
+		}
+
+		@Override
+		public void close() throws IOException {
+			this.cursor.close();
 		}
 		
 	}

@@ -1,0 +1,7 @@
+{
+	"documents2pdfsimulation": {
+		"name": "Convert Documents to PDF",
+		"scale": "10 users, 1000 files",
+		"description" : "This simulation takes a sample of 1000 office documents of various formats from the CI-BER collection. It uses the same set of documents each time in order to allow performance comparisons. Running as ten users in parallel, it attempts to convert the documents to PDFs. The file extensions used as input include: DOC, DOCX, WPD, WP, WP7, ODT, RTF, HTML, HTM, SXW, TXT, LWP, MCW"
+	}
+}

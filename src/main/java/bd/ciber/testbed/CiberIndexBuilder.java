@@ -24,9 +24,9 @@ import com.mongodb.WriteConcern;
 public class CiberIndexBuilder {
 	private static final Logger LOG = LoggerFactory
 			.getLogger(CiberIndexBuilder.class);
-	
+
 	private Random random = new XORShiftRandom();
-	
+
 	MongoClient mongoClient;
 
 	public MongoClient getMongoClient() {
@@ -90,8 +90,9 @@ public class CiberIndexBuilder {
 		long started = System.currentTimeMillis();
 		try {
 			while (it.hasNext()) {
-				String line = it.nextLine();
-				op.insert(parseLine(line));
+				BasicDBObject obj = parseLine(it.nextLine());
+				if(obj == null) continue;
+				op.insert(obj);
 				ready++;
 				if (ready >= 1000) {
 					op.execute(WriteConcern.ACKNOWLEDGED);
@@ -107,7 +108,8 @@ public class CiberIndexBuilder {
 		} finally {
 			LineIterator.closeQuietly(it);
 		}
-		if(inserted % 100000 == 0) updateConsole(inserted, lines, started);
+		if (inserted % 100000 == 0)
+			updateConsole(inserted, lines, started);
 	}
 
 	private void updateConsole(long inserted, long lines, long started) {
@@ -148,28 +150,39 @@ public class CiberIndexBuilder {
 	}
 
 	/**
-	 * Parses inventory file lines. Inventory building command: 
-	 * find . -type f -fprintf ~/inventory.txt "%f\t%h\t%d\t%s\n"
-	 * Note: run command on current dir only (.)
+	 * Parses inventory file lines. Inventory building command: find . -type f
+	 * -fprintf ~/inventory.txt "%f\t%h\t%d\t%s\n" Note: run command on current
+	 * dir only (.)
 	 * 
 	 * @param line
 	 * @return
 	 */
 	private BasicDBObject parseLine(String line) {
-		BasicDBObject obj = new BasicDBObject();
-		String[] fields = line.split("\\t");
-		// TODO JSON-LD predicates/namespace
-		// TODO add extension field (including blank ones)
-		obj.append(CiberIndexKeys.F_NAME.key(), fields[0]);
-		String folder = fields[1].substring(2);
-		obj.append(CiberIndexKeys.F_FOLDER.key(), folder);
-		StringBuilder sb = new StringBuilder(folder);
-		sb.append('/').append(fields[0]);
-		obj.append(CiberIndexKeys.F_FULLPATH.key(), sb.toString());
-		obj.append(CiberIndexKeys.F_DEPTH.key(), fields[2]);
-		obj.append(CiberIndexKeys.F_SIZE.key(), fields[3]);
-		obj.append(CiberIndexKeys.F_RANDOM.key(), random.nextFloat());
-		return obj;
+		try {
+			BasicDBObject obj = new BasicDBObject();
+			String[] fields = line.split("\\t");
+			// TODO JSON-LD predicates/namespace
+			String filename = fields[0];
+			obj.append(CiberIndexKeys.F_NAME.key(), filename);
+			String folder = fields[1].substring(2);
+			obj.append(CiberIndexKeys.F_FOLDER.key(), folder);
+			StringBuilder sb = new StringBuilder(folder);
+			sb.append('/').append(fields[0]);
+			obj.append(CiberIndexKeys.F_FULLPATH.key(), sb.toString());
+			obj.append(CiberIndexKeys.F_DEPTH.key(), fields[2]);
+			obj.append(CiberIndexKeys.F_SIZE.key(), fields[3]);
+			obj.append(CiberIndexKeys.F_RANDOM.key(), random.nextFloat());
+
+			// add extension field (if there is one)
+			if( filename.matches("\\..+$") ) {
+				String ext = filename.substring(filename.lastIndexOf('.')+1, filename.length());
+				obj.append(CiberIndexKeys.F_EXTENSION.key(), ext);
+			}
+			return obj;
+		} catch (ArrayIndexOutOfBoundsException e) {
+			LOG.error("Bad line: {}", line, e);
+			return null;
+		}
 	}
 
 	private class XORShiftRandom extends Random {
@@ -192,9 +205,9 @@ public class CiberIndexBuilder {
 	}
 
 	public static void main(String[] args) throws IOException {
-		File inventoryFile = new File(args[1]);
+		File inventoryFile = new File(args[0]);
 		if (!inventoryFile.exists()) {
-			LOG.error("Inventory file not found: {}", args[1]);
+			LOG.error("Inventory file not found: {}", args[0]);
 			return;
 		}
 		MongoClient c = new MongoClient();

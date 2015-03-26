@@ -42,7 +42,7 @@ public class ReportsController {
 	private static DateFormat FORMAT = SimpleDateFormat.getDateTimeInstance();
 
 	@RequestMapping(method = RequestMethod.GET, headers = "Accept=application/json")
-	public void listReports(@RequestParam(defaultValue="all", required=false) String simulation,
+	public void listReports(@RequestParam(defaultValue="all", required=false) String sim,
 			Writer responseWriter) {
 		Map<String, List<Map<String, String>>> result = new HashMap<String, List<Map<String, String>>>();
 		MongoClient mongoClient;
@@ -54,8 +54,8 @@ public class ReportsController {
 		DB testbedDB = mongoClient.getDB(DBNAME);
 		DBCollection results = testbedDB.getCollection(SIMULATION_RESULTS_COLL);
 		BasicDBObject ref = new BasicDBObject();
-		if(simulation != null && !"all".equals(simulation)) {
-			ref.append(SIMULATION_NAME, simulation);
+		if(sim != null && !"all".equals(sim)) {
+			ref.append(SIMULATION_NAME, sim);
 		}
 		BasicDBObject keys = new BasicDBObject(DATETIME, true);
 		keys.append(SIMULATION_NAME, true);
