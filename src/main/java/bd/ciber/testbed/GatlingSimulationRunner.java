@@ -31,8 +31,16 @@ public class GatlingSimulationRunner {
 	@Value("${bodiesFolder}")
 	private String bodiesFolder;
 
-	@Value("${simulations}")
-	String[] simulations;
+	
+	List<String> simulations;
+
+	public List<String> getSimulations() {
+		return simulations;
+	}
+
+	public void setSimulations(List<String> simulations) {
+		this.simulations = simulations;
+	}
 
 	@Autowired
 	private MongoResultsCollector mongoResultsCollector;
@@ -71,7 +79,7 @@ public class GatlingSimulationRunner {
 
 	// @Scheduled(cron="*/10 * * * * *")
 	// every half-hour
-	@Scheduled(initialDelay = 30000, fixedDelay = 1800000)
+	//@Scheduled(initialDelay = 30000, fixedDelay = 1800000)
 	public void runAll() throws InterruptedException {
 		boolean first = true;
 		int count = 0;

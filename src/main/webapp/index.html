@@ -95,9 +95,10 @@
 
           <div class="row placeholders">
           <div class="col-*-6">
-          <h2 class="sub-header">20 Most Recent Simulation Runs</h2>
+          <h2 class="sub-header">Recent Simulations</h2>
               <table id="sims" class="table table-striped">
                 <thead>
+                  <tr><th>Name</th><th>Errors</th><th>Date</th></tr>
                 </thead>
                 <tbody>
                 </tbody>
@@ -121,7 +122,7 @@
     $.getJSON("/rest/sim/",function(data){
       for(var key in data) {
         var name = data[key].name;
-        $("#append-sims").append("li").html("<a href='/rest/sim/"+key+"'>"+name+"</a>");
+        $("#append-sims").after("<li><a href='/rest/sim/"+key+"'>"+name+"</a></li>");
       }
     });
 
@@ -141,10 +142,10 @@
     		.data(d3.values(simulationResults)).enter()
         .append("tr");
         tr.append("td").html(function(d) {
-          return '<a href="/rest/results/'+d["gatling-results-folder"]+'/index.html">'+d["simulation-name"]+'</a>'})
+          return '<a href="/rest/results/'+d["gatling-results-folder"]+'/index.html">'+d["simulation-name"]+'</a>'});
         tr.append("td").html(function(d) {
-          return '<td>'+d["errors"].length+'</td>'})
-        .attr("style", function(d) { return (d["errors"].length > 0) ? "background-color: pink" : ""; })
+          return '<td>'+d["numberOfRequests"]["ko"]+'/'+d["numberOfRequests"]["total"]+'</td>'})
+        .attr("style", function(d) { return (d["numberOfRequests"]["ko"] > 0) ? "background-color: pink" : ""; });
         tr.append("td").html(function(d) {
             return '<td>'+d["date-time"]["$date"]+ '</td>'});
     	}

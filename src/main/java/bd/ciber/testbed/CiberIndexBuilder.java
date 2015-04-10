@@ -169,17 +169,19 @@ public class CiberIndexBuilder {
 			StringBuilder sb = new StringBuilder(folder);
 			sb.append('/').append(fields[0]);
 			obj.append(CiberIndexKeys.F_FULLPATH.key(), sb.toString());
-			obj.append(CiberIndexKeys.F_DEPTH.key(), fields[2]);
-			obj.append(CiberIndexKeys.F_SIZE.key(), fields[3]);
+			int depth = Integer.parseInt(fields[2]);
+			obj.append(CiberIndexKeys.F_DEPTH.key(), depth);
+			long size = Long.parseLong(fields[3]);
+			obj.append(CiberIndexKeys.F_SIZE.key(), size);
 			obj.append(CiberIndexKeys.F_RANDOM.key(), random.nextFloat());
 
 			// add extension field (if there is one)
-			if( filename.matches("\\..+$") ) {
+			if( filename.lastIndexOf('.')+1 < filename.length() ) {
 				String ext = filename.substring(filename.lastIndexOf('.')+1, filename.length());
-				obj.append(CiberIndexKeys.F_EXTENSION.key(), ext);
+				obj.append(CiberIndexKeys.F_EXTENSION.key(), ext.toUpperCase());
 			}
 			return obj;
-		} catch (ArrayIndexOutOfBoundsException e) {
+		} catch (StringIndexOutOfBoundsException|ArrayIndexOutOfBoundsException e) {
 			LOG.error("Bad line: {}", line, e);
 			return null;
 		}

@@ -9,7 +9,14 @@
 
 	<context:property-placeholder location="classpath:testbed.properties" />
 
-	<bean id="gatlingSimulationRunner" class="bd.ciber.testbed.GatlingSimulationRunner"/>
+	<bean id="gatlingSimulationRunner" class="bd.ciber.testbed.GatlingSimulationRunner">
+		<property name="simulations">
+			<list>
+				<value>bd.ciber.gatling.Documents2PDFSimulation</value>
+				<value>bd.ciber.gatling.LegacyImage2TIFFSimulation</value>
+			</list>
+		</property>
+	</bean>
 	
 	<bean id="mongoResultsCollector" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="bd.ciber.testbed.MongoResultsCollector"/>

@@ -6,6 +6,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -15,6 +18,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.QueryBuilder;
 
 public class CiberIndex {
+	private static final Logger LOG = LoggerFactory.getLogger(CiberIndex.class);
 
 	MongoClient mongoClient;
 	
@@ -36,7 +40,7 @@ public class CiberIndex {
 	 * @param randomSeed an offset for sampling at random, or null for new random sample.
 	 * @param minSize minimum size of files in bytes
 	 * @param maxSize maximum size of files in bytes
-	 * @param extension the desired file extensions, if any
+	 * @param extension the desired file extensions, if any (case insensitive)
 	 * @return a Gatling-style iterator of mapped "fullpath"
 	 */
 	public Iterator<String> get(int howMany, Float randomSeed, Integer minSize, Integer maxSize, String... extension) {
@@ -45,6 +49,9 @@ public class CiberIndex {
 		
 		QueryBuilder qb = QueryBuilder.start();
 		if(extension != null && extension.length > 0) {
+			for(int i = 0; i < extension.length; i++) {
+				extension[i] = extension[i].toUpperCase();
+			}
 			qb.and(CiberIndexKeys.F_EXTENSION.key()).in(extension);
 		}
 		if(minSize != null) {
@@ -57,10 +64,11 @@ public class CiberIndex {
 			randomSeed = new Float(Math.random());
 		}
 		qb.and(CiberIndexKeys.F_RANDOM.key()).greaterThan(randomSeed.floatValue());
-		
-		DBCursor cursor = coll.find(qb.get(), fullpathSpec);
-		cursor.sort(new BasicDBObject(CiberIndexKeys.F_RANDOM.key(), 1));
-		cursor.limit(howMany);
+		DBObject query = qb.get();
+		LOG.info("QUERY: {} ", query.toString());
+		DBCursor cursor = coll.find(query, fullpathSpec);
+		cursor = cursor.sort(new BasicDBObject(CiberIndexKeys.F_RANDOM.key(), 1));
+		cursor = cursor.limit(howMany);
 		Iterator<String> result = new MongoPathIterator(cursor);
 		return result;
 	}

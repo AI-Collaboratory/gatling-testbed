@@ -59,7 +59,8 @@ public class ReportsController {
 		}
 		BasicDBObject keys = new BasicDBObject(DATETIME, true);
 		keys.append(SIMULATION_NAME, true);
-		keys.append(ERRORS, true);
+		keys.append("numberOfRequests.ko", true);
+		keys.append("numberOfRequests.total", true);
 		keys.append(GATLING_RESULTS_FOLDER, true);
 		DBCursor cursor = results.find(ref, keys).sort(
 				new BasicDBObject(DATETIME, -1));
