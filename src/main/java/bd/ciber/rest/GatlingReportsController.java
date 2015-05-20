@@ -35,9 +35,9 @@ import com.mongodb.util.JSON;
  */
 @RestController
 @RequestMapping("/reports/")
-public class ReportsController {
+public class GatlingReportsController {
 	private static final Logger LOG = LoggerFactory
-			.getLogger(ReportsController.class);
+			.getLogger(GatlingReportsController.class);
 
 	private static DateFormat FORMAT = SimpleDateFormat.getDateTimeInstance();
 
@@ -61,9 +61,14 @@ public class ReportsController {
 		keys.append(SIMULATION_NAME, true);
 		keys.append("numberOfRequests.ko", true);
 		keys.append("numberOfRequests.total", true);
+		keys.append("minResponseTime.ok", true);
+		keys.append("maxResponseTime.ok", true);
+		keys.append("meanResponseTime.ok", true);
+		keys.append("meanNumberOfRequestsPerSecond.ok", true);
 		keys.append(GATLING_RESULTS_FOLDER, true);
+		keys.append(BDMETRICS, true);
 		DBCursor cursor = results.find(ref, keys).sort(
-				new BasicDBObject(DATETIME, -1));
+				new BasicDBObject(DATETIME, -1)).limit(200);
 		try {
 			responseWriter.write("{ \"simulation-results\":[");
 			boolean first = true;
@@ -80,4 +85,5 @@ public class ReportsController {
 			throw new Error("Cannot write response", e);
 		}
 	}
+
 }

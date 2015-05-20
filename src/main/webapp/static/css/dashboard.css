@@ -94,3 +94,19 @@ body {
   display: inline-block;
   border-radius: 50%;
 }
+
+.area {
+  fill: steelblue;
+}
+
+.line {
+  fill: none;
+  stroke: red;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}

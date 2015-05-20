@@ -41,9 +41,10 @@ public class CiberStatsController {
 	@Value("${cacheFolder}")
 	private String cacheFolder;
 	
-	private String formatDistFilename = "formats.json";
+	private String formatDistFilename = "formatDist.json";
+	private String formatByteDistFilename = "formatByteDist.json";
 
-	@RequestMapping(value = "/formats", method = RequestMethod.GET, headers = "Accept=application/json")
+	@RequestMapping(value = "/formatDist", method = RequestMethod.GET, headers = "Accept=application/json")
 	public void formatDist(
 			@RequestParam(defaultValue = "false", required = false) String reload,
 			Writer responseWriter) throws IOException {
@@ -86,6 +87,51 @@ public class CiberStatsController {
 		}
 		String formatDist = FileUtils.readFileToString(formatDistFile);
 		responseWriter.write(formatDist);
+	}
+	
+	@RequestMapping(value = "/formatByteDist", method = RequestMethod.GET, headers = "Accept=application/json")
+	public void formatBytesDist(
+			@RequestParam(defaultValue = "false", required = false) String reload,
+			Writer responseWriter) throws IOException {
+		File formatByteDistFile = new File(cacheFolder, formatByteDistFilename);
+		if ("true".equals(reload) || !formatByteDistFile.exists()) {
+			MongoClient mongoClient;
+			try {
+				mongoClient = new MongoClient();
+			} catch (UnknownHostException e) {
+				throw new Error(e);
+			}
+			DB testbedDB = mongoClient.getDB(DB.key());
+			DBCollection coll = testbedDB.getCollection(FILES_COLL.key());
+
+			List<DBObject> agg = new ArrayList<DBObject>();
+			DBObject count = (DBObject) JSON
+					.parse("{ $group: { _id: \"$extension\", count: { $sum: \"$size\" } } }");
+			DBObject moreThanAFew = (DBObject) JSON
+					.parse("{ $match: { count: { $gte: 999 } } }");
+			DBObject sort = (DBObject) JSON.parse("{ $sort: { count: -1 } }");
+			agg.add(count);
+			agg.add(moreThanAFew);
+			agg.add(sort);
+
+			AggregationOutput res = coll.aggregate(agg);
+
+			StringWriter sw = new StringWriter();
+			sw.write("{ \"formats\":[");
+			boolean first = true;
+			for (DBObject o : res.results()) {
+				if (first) {
+					first = false;
+				} else {
+					sw.write(',');
+				}
+				sw.write(JSON.serialize(o));
+			}
+			sw.write("] }");
+			FileUtils.writeStringToFile(formatByteDistFile, sw.toString());
+		}
+		String formatByteDist = FileUtils.readFileToString(formatByteDistFile);
+		responseWriter.write(formatByteDist);
 	}
 
 }

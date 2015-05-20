@@ -23,6 +23,7 @@
     <![endif]-->
 
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="/static/js/d3.layout.cloud.js"></script>
   </head>
 
   <body>
@@ -63,34 +64,32 @@
           <h1 class="page-header">CI-BER Collection Statistics</h1>
 
           <div class="row placeholders">
-            <div class="col-xs-6 col-sm-3 placeholder">
+            <div class="col-md-4 placeholder">
               <h4>Summary</h4>
               <span class="text-muted">Some numbers</span>
               <p>
                 <ul style="list-style-type: none; padding:0; margin:0;">
                   <li>52.21 terabytes</li>
                   <li>72,165,721 unique files</li>
-                  <li>?? unique file extensions</li>
+                  <!-- <li>?? unique file extensions</li>
                   <li>?? recognized formats</li>
-                  <li>largest file:</li>
+                  <li>largest file:</li> -->
                 </ul>
               </p>
             </div>
-            <div class="col-xs-6 col-sm-3 placeholder">
-              <img data-src="holder.js/200x200/auto/sky" class="img-responsive" alt="Generic placeholder thumbnail">
-              <h4>Extensions</h4>
-              <span class="text-muted">distribution of file extensions</span>
+            <div id="formatDist" class="col-md-4 placeholder">
+              <h4>File Extensions</h4>
+              <span class="text-muted">top 40 by file count</span><br />
             </div>
-            <div class="col-xs-6 col-sm-3 placeholder">
-              <img data-src="holder.js/200x200/auto/vine" class="img-responsive" alt="Generic placeholder thumbnail">
+            <div id="formatByteDist" class="col-md-4 placeholder">
+              <h4>Bytes by File Extension</h4>
+              <span class="text-muted">top 40 by byte count</span><br />
+            </div>
+            <!-- <div class="col-md-4 placeholder">
+              <img data-src="holder.js/300x300/auto/vine" class="img-responsive" alt="Generic placeholder thumbnail">
               <h4>Sizes</h4>
               <span class="text-muted">distribution of file sizes</span>
-            </div>
-            <div class="col-xs-6 col-sm-3 placeholder">
-              <img data-src="holder.js/200x200/auto/sky" class="img-responsive" alt="Generic placeholder thumbnail">
-              <h4>Formats</h4>
-              <span class="text-muted">distribution of recognized formats</span>
-            </div>
+            </div> -->
           </div>
 
           <div class="row placeholders">
@@ -103,9 +102,6 @@
                 <tbody>
                 </tbody>
               </table>
-          </div>
-          <div class="col-*-6">
-            <img data-src="holder.js/200x200/auto/sky" class="img-responsive" alt="Generic placeholder thumbnail">
           </div>
         </div>
       </div>
@@ -149,6 +145,89 @@
         tr.append("td").html(function(d) {
             return '<td>'+d["date-time"]["$date"]+ '</td>'});
     	}
+
+      // Word Cloud for Formats
+      var fill = d3.scale.category10();
+      var fontSize = d3.scale.linear().domain([0, 26000000]).rangeRound([10, 100]);
+
+      var svg1 = d3.select("#formatDist").insert("svg")
+      .attr("width", 300)
+      .attr("height", 300);
+
+      var svg2 = d3.select("#formatByteDist").insert("svg")
+      .attr("width", 300)
+      .attr("height", 300);
+
+
+      d3.json("/rest/ciberStats/formatDist", function(error, json) {
+        if (error) return console.warn(error);
+        var dist = json["formats"].slice(0,40);
+        wordCloud(dist, draw1);
+      });
+
+      d3.json("/rest/ciberStats/formatByteDist", function(error, json) {
+        if (error) return console.warn(error);
+        var dist = json["formats"].slice(0,40);
+        wordCloud(dist, draw2);
+      });
+
+    function wordCloud(formatDist, drawFunction) {
+      d3.layout.cloud().size([300, 300])
+      .timeInterval(10)
+      .words(formatDist.map(function(d) {
+          return {text: d["_id"], count: d["count"] };
+        }))
+      .padding(5)
+      .rotate(function() { return ~~(Math.random() * 5) * 30 - 60; })
+      .font("Arial Black")
+      .fontSize(function(d) {
+          var s = fontSize(+d.count);
+          return s;
+          }
+        )
+      .on("end", drawFunction)
+      .start();
+    }
+
+    function draw1(words) {
+      svg1
+      .append("g")
+      .attr("transform", "translate(150,150)")
+      .selectAll("text")
+      .data(words)
+      .enter().append("text")
+      .style("font-size", function(d) {
+        var s = fontSize(+d.count)+"px";
+        return s;
+      })
+      .style("font-family", "Arial Black")
+      .style("fill", function(d, i) { return fill(i); })
+      .attr("text-anchor", "middle")
+      .attr("transform", function(d) {
+        return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+      })
+      .text(function(d) { return d.text; });
+    }
+
+    function draw2(words) {
+      svg2
+      .append("g")
+      .attr("transform", "translate(150,150)")
+      .selectAll("text")
+      .data(words)
+      .enter().append("text")
+      .style("font-size", function(d) {
+        var s = fontSize(+d.count)+"px";
+        return s;
+      })
+      .style("font-family", "Arial Black")
+      .style("fill", function(d, i) { return fill(i); })
+      .attr("text-anchor", "middle")
+      .attr("transform", function(d) {
+        return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+      })
+      .text(function(d) { return d.text; });
+    }
     </script>
   </body>
 </html>

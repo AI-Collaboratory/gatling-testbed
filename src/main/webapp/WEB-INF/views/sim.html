@@ -63,26 +63,15 @@
         <h1 class="page-header">{{name}}</h1>
 
         <div class="row placeholders">
-          <div class="col-xs-6 col-sm-3 placeholder">
+          <div class="col-md-3 placeholder">
             <h4>Summary</h4>
             <span class="text-muted">{{scale}}</span>
             <span class="text-muted">{{formats}}</span>
             <p>{{description}}</p>
           </div>
-          <div class="col-xs-6 col-sm-3 placeholder">
-            <img data-src="holder.js/200x200/auto/sky" class="img-responsive" alt="Generic placeholder thumbnail">
-            <h4>Extensions</h4>
-            <span class="text-muted">distribution of file extensions</span>
-          </div>
-          <div class="col-xs-6 col-sm-3 placeholder">
-            <img data-src="holder.js/200x200/auto/vine" class="img-responsive" alt="Generic placeholder thumbnail">
-            <h4>Sizes</h4>
-            <span class="text-muted">distribution of file sizes</span>
-          </div>
-          <div class="col-xs-6 col-sm-3 placeholder">
-            <img data-src="holder.js/200x200/auto/sky" class="img-responsive" alt="Generic placeholder thumbnail">
-            <h4>Formats</h4>
-            <span class="text-muted">distribution of recognized formats</span>
+          <div id="responseTime" class="col-md-9 placeholder">
+            <h4>Brown Dog Processing Time</h4>
+            <span class="text-muted">last byte sent until first byte received<br />mean (red), min/max (blue)</span><br />
           </div>
         </div>
 
@@ -120,14 +109,67 @@
   });
 
     var simulationResults;
+    var maxMaxTime;
+    var minMinTime;
+
 
     d3.json("/rest/reports/?sim={{id}}", function(error, json) {
       if (error) return console.warn(error);
       simulationResults = json["simulation-results"];
-      visualizeit();
+      maxMeanTime = d3.max(simulationResults, function(d) { return ('brownDogMetrics' in d) ? d.brownDogMetrics.meanTime : 0; });
+      minMinTime = d3.max(simulationResults, function(d) { return ('brownDogMetrics' in d) ? d.brownDogMetrics.minTime : 1000; });
+      graphs();
+      makeResultsTable();
     });
 
-    function visualizeit() {
+    var parseDate = d3.time.format("%Y-%m-%dT").parse; // "2015-05-18T23:28:01.000Z";
+
+    function graphs() {
+      var divW = $("#responseTime").width();
+      var divH = 300;
+      var margin = {top: 20, right: 20, bottom: 30, left: 70},
+      width = divW - margin.left - margin.right,
+      height = divH - margin.top - margin.bottom;
+
+      var lastUTC = new Date(simulationResults[0]["date-time"]["$date"]);
+      var firstUTC = new Date(simulationResults[simulationResults.length-1]["date-time"]["$date"]);
+      var xScale = d3.time.scale()
+        .domain([lastUTC, firstUTC])
+        .range([0, width]);
+      var yScale = d3.scale.linear()
+        //.domain([0, maxMaxTime])
+        .domain([0, 1000])
+        .range([height, 0]);
+
+      var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+      var yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+      var area = d3.svg.area()
+        .x(function(d) { return xScale(new Date(d["date-time"]["$date"])); })
+        .y0(function(d) { return yScale(d.brownDogMetrics.minTime) - height; })
+        .y1(function(d) { return yScale(d.brownDogMetrics.maxTime) - height; })
+        .defined(function(d) { return 'brownDogMetrics' in d; });
+
+      var line = d3.svg.line()
+        .x(function(d) { return xScale(new Date(d["date-time"]["$date"]))})
+        .y(function(d) { return yScale(d.brownDogMetrics.meanTime) - height })
+        .defined(function(d) { return 'brownDogMetrics' in d; });
+
+      var responseTimeSVG = d3.select("#responseTime").insert("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom);
+      var g = responseTimeSVG.append("g")
+        .attr("transform", "translate(" + margin.left + "," + (height + margin.top) + ")");
+      g.append("svg:path").attr("class", "area").attr("d", area(simulationResults));
+      g.append("svg:path").attr("class", "line").attr("d", line(simulationResults));
+      g.append("g").attr("class", "x axis").call(xAxis);
+      responseTimeSVG.append("g")
+        .attr("transform", "translate(" + margin.left + ","+margin.top+")")
+        .attr("class", "y axis").call(yAxis);
+    }
+
+
+    function makeResultsTable() {
       // create the table header
       var simstable = d3.select("#sims > tbody");
       // alert(simulationResults.length);
@@ -142,6 +184,7 @@
       tr.append("td").html(function(d) {
             return '<td>'+d["date-time"]["$date"]+ '</td>'});
     }
+
   </script>
   </body>
 </html>

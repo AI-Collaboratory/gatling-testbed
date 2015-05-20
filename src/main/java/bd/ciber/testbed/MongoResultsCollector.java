@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import static bd.ciber.testbed.MongoKeys.*;
 
 import javax.annotation.PostConstruct;
@@ -22,7 +22,6 @@ import org.springframework.stereotype.Component;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.util.JSON;
@@ -45,6 +44,18 @@ public class MongoResultsCollector {
 			DBCollection res = testbedDB.createCollection(SIMULATION_RESULTS_COLL, null);
 			res.createIndex(new BasicDBObject(DATETIME, 1));
 		}
+	}
+	
+	public static void main(String[] args) throws UnknownHostException {
+		File folder = new File(args[0]);
+		if(!folder.exists() || !folder.isDirectory()) {
+			System.err.println(args[0]+" not a valid Gatling results folder.");
+			System.exit(1);
+		}
+		MongoResultsCollector instance = new MongoResultsCollector();
+		instance.resultsFolder = folder.getAbsolutePath();
+		instance.init();
+		instance.collectAll();
 	}
 
 	public File[] getLatestResultsFolders(int howMany) {
@@ -70,23 +81,39 @@ public class MongoResultsCollector {
 		}
 	}
 
+	/**
+	 * Collect the results of all simulations into MongoDB. Will
+	 * perform upsert to update existing documents.
+	 * 
+	 */
+	public void collectAll() {
+		File dir = new File(this.resultsFolder);
+		File[] resFolders = dir.listFiles();
+		int count = 0;
+		for(File resFolder : resFolders) {
+			String fldNm = resFolder.getName();
+			String simName = fldNm.substring(0, fldNm.indexOf('-')).toLowerCase();
+			collectSimulationResult(resFolder, simName);
+			count++;
+			if(count % 100 == 0) {
+				System.out.println("Finished results folders: "+count);
+			}
+		}
+	}
+	
 	private void collectSimulationResult(File resFolder, String simName) {
 		try {
 			MongoClient mongoClient = new MongoClient();
 			DB testbedDB = mongoClient.getDB(DBNAME);
 			DBCollection stats = testbedDB.getCollection(SIMULATION_RESULTS_COLL);
+			
 			// check that results folder is not already collected
 			DBObject simRef = new BasicDBObject(GATLING_RESULTS_FOLDER, resFolder.getName());
-			try(DBCursor cur = stats.find(simRef)) {
-				if(cur.count() > 0) {
-					LOG.debug("Already logged the results in {}", resFolder.getName());
-					return;
-				}
-			}
 			
 			// add js/global_stats.json to document
 			File globalStatsFile = new File(resFolder,
 					"js/global_stats.json");
+			if(!globalStatsFile.exists()) return; // skip incomplete folders
 			String statsStr = FileUtils.readFileToString(globalStatsFile);
 			DBObject statsObject = (DBObject) JSON.parse(statsStr);
 			
@@ -98,13 +125,13 @@ public class MongoResultsCollector {
 			// add errors (KOs) from simulation.log
 			File simulationLog = new File(resFolder, "simulation.log");
 			try {
-				List<Map<String, Object>> errors = SimulationLogParser.parse(simulationLog);
-				statsObject.put(ERRORS, errors);
+				Map<String, Object> parsedData = SimulationLogParser.parse(simulationLog);
+				statsObject.putAll(parsedData);
 			} catch(IOException e) {
 				LOG.error("Unexpected IO Errors reading simulation log", e);
 			}
 			
-			stats.insert(statsObject);
+			stats.update(simRef, statsObject, true, false);			
 		} catch (UnknownHostException e) {
 			LOG.error("Unexpected", e);
 			throw new Error(e);

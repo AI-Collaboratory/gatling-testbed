@@ -9,4 +9,8 @@ public class MongoKeys {
 	public static final String ERRORS = "errors";
 	public static final String ERROR_MESSAGE = "message";
 	public static final String ERROR_REQUEST_NAME = "request-name";
+	public static final String BDMETRICS = "brownDogMetrics";
+	public static final String BDMETRICS_MAX = "maxTime";
+	public static final String BDMETRICS_MIN = "minTime";
+	public static final String BDMETRICS_MEAN = "meanTime";
 }

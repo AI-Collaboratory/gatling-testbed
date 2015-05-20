@@ -13,14 +13,17 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import com.mongodb.util.JSON;
+
 import static bd.ciber.testbed.MongoKeys.*;
 
 public class SimulationLogParserTest {
 
 	@Test
-	public void testParse() throws IOException {
+	public void testParseErrors() throws IOException {
 		File testLogFile = new File("src/test/resources/alloysimulation-1425400194812/simulation.log");
-		List<Map<String, Object>> errors = SimulationLogParser.parse(testLogFile);
+		Map<String, Object> result = SimulationLogParser.parse(testLogFile);
+		List<Map<String, Object>> errors = (List<Map<String, Object>>)result.get(MongoKeys.ERRORS); 
 		assertEquals("Number of errors in log", 2, errors.size());
 		Object dt = errors.get(0).get(DATETIME);
 		assertTrue("Must be a date/time", Date.class.isInstance(dt));
@@ -34,8 +37,28 @@ public class SimulationLogParserTest {
 		
 		assertTrue(((String)errors.get(0).get(ERROR_MESSAGE)).startsWith("java.net.ConnectException:"));
 		assertTrue(((String)errors.get(1).get(ERROR_MESSAGE)).startsWith("java.net.ConnectException:"));
-		
-		
 	}
 
+	@Test
+	public void testParseMetrics() throws IOException {
+		File testLogFile = new File("src/test/resources/simulation1.log");
+		Map<String, Object> result = SimulationLogParser.parse(testLogFile);
+		
+		Map<String, Long> metrics = (Map<String, Long>)result.get(MongoKeys.BDMETRICS);
+		assertTrue(3 == metrics.size());
+		assertTrue((metrics.get(BDMETRICS_MAX) >= metrics.get(BDMETRICS_MEAN)));
+		assertTrue((metrics.get(BDMETRICS_MEAN) >= metrics.get(BDMETRICS_MIN)));
+	}
+	
+	@Test
+	public void testParseMetrics2() throws IOException {
+		File testLogFile = new File("src/test/resources/simulation2.log");
+		Map<String, Object> result = SimulationLogParser.parse(testLogFile);
+		
+		Map<String, Long> metrics = (Map<String, Long>)result.get(MongoKeys.BDMETRICS);
+		assertTrue(3 == metrics.size());
+		assertTrue((metrics.get(BDMETRICS_MAX) >= metrics.get(BDMETRICS_MEAN)));
+		assertTrue((metrics.get(BDMETRICS_MEAN) >= metrics.get(BDMETRICS_MIN)));
+	}
+	
 }
