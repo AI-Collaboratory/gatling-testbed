@@ -1,14 +1,26 @@
 {
 	"documents2pdfsimulation": {
 		"name": "Convert Documents to PDF",
-		"scale": "200 users",
-		"description" : "This simulation takes a sample of office documents of various formats from the CI-BER collection. It uses the same set of documents each time in order to allow performance comparisons. Running as ten users in parallel, it attempts to convert the documents to PDFs.",
+		"scale": "100 users",
+		"description" : "This simulation takes a sample of office documents of various formats from the CI-BER collection. It uses the same set of documents each time in order to allow performance comparisons. Adding one new user every second to reach 100 users, it attempts to convert the documents to PDFs.",
 		"formats" : [ "DOC", "DOCX", "ODF", "RTF", "WPD", "WP", "LWP", "WSD" ]
 	},
 	"legacyimage2tiffsimulation": {
 		"name": "Convert Legacy Images to TIFF",
-		"scale": "200 users",
-		"description" : "This simulation takes a sample of visual images in older formats. Same set each time allows performance comparison. Running as 1000 users over 5 minutes, it attempts to convert the images to TIFF, a preservation format.",
+		"scale": "100 users",
+		"description" : "This simulation takes a sample of visual images in older formats. Same set each time allows performance comparison. Adding one new user every second to reach 100 users, it attempts to convert the images to TIFF, a preservation format.",
+		"formats" : [ "TARGA", "PICT", "WMF", "BMP", "PSD", "TGA", "PCT", "EPS", "MACPAINT", "MSP", "PCX" ]
+	},
+	"documents2pdfcoveragesimulation": {
+		"name": "Find documents that do not convert PDF (Random Sampling)",
+		"scale": "1000 users",
+		"description" : "This simulation takes a new random sample of office documents of various formats from the CI-BER collection. Simulating 1000 users, it searches for documents that DAP cannot convert to PDF.",
+		"formats" : [ "DOC", "DOCX", "ODF", "RTF", "WPD", "WP", "LWP", "WSD" ]
+	},
+	"legacyimage2tiffcoveragesimulation": {
+		"name": "Find images that do not convert to TIFF (Random Sampling)",
+		"scale": "1000 users",
+		"description" : "This simulation takes a new random sample of visual images in older formats. Simulating 1000 users, it searches for images the DAP cannot convert to TIFF, a preservation format.",
 		"formats" : [ "TARGA", "PICT", "WMF", "BMP", "PSD", "TGA", "PCT", "EPS", "MACPAINT", "MSP", "PCX" ]
 	}
 }
