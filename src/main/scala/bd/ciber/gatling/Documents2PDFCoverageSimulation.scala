@@ -29,9 +29,15 @@ class Documents2PDFCoverageSimulation extends Simulation {
   //val feeder = Iterator.fill(1000)(Map("path" -> (
   //    ciberIndex.get(1000, randomSeed, 100, 20e6.toInt, "DOC", "DOCX", "ODF", "RTF", "WPD", "WP", "LWP", "WSD").next)))
   
-  val samples = ciberIndex.get(1100, randomSeed, 100, 20e6.toInt, "DOC", "DOCX", "ODF", "RTF", "WPD", "WP", "LWP", "WSD");
-  val feeder = Iterator.continually(Map("path" -> (samples.next)))
-        
+  val samples = ciberIndex.get(1100, randomSeed, 100, 20e6.toInt, "DOC", "DOCX", "ODF", "RTF"/*, "WPD", "WP"*/, "LWP", "WSD");
+  val dummy = samples.next
+  val feeder = Iterator.continually(
+      if(samples hasNext) { 
+        Map("path" -> ( samples.next ))
+      } else {
+        Map("path" -> dummy)
+      }
+    )   
       
   val includesMyExtension = (conversionInputs: Option[String], session: Session) => {
     val path = session("path").as[String]

@@ -21,8 +21,15 @@ class LegacyImage2TIFFCoverageSimulation extends Simulation {
   val ciberIndex = new bd.ciber.testbed.CiberIndex();
   ciberIndex.setMongoClient(new com.mongodb.MongoClient());
      
-  val samples = ciberIndex.get(1100, randomSeed, 100, 20e6.toInt, "TARGA", "PICT", "WMF", "BMP", "PSD", "TGA", "PCT", "EPS", "MACPAINT", "MSP", "PCX")
-  val feeder = Iterator.continually(Map("path" -> ( samples.next )))
+  val samples = ciberIndex.get(1100, randomSeed, 100, 20e6.toInt, "TARGA", "PICT", /*"WMF",*/ "BMP", /*"PSD",*/ "TGA", "PCT", "EPS", "MACPAINT", "MSP", "PCX")
+  val dummy = samples.next
+  val feeder = Iterator.continually(
+      if(samples hasNext) { 
+        Map("path" -> ( samples.next ))
+      } else {
+        Map("path" -> dummy)
+      }
+    )
   
   val includesMyExtension = (conversionInputs: Option[String], session: Session) => {
     val path = session("path").as[String]

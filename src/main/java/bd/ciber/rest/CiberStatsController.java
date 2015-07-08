@@ -65,9 +65,11 @@ public class CiberStatsController {
 			DBObject moreThanAFew = (DBObject) JSON
 					.parse("{ $match: { count: { $gte: 950 } } }");
 			DBObject sort = (DBObject) JSON.parse("{ $sort: { count: -1 } }");
+			DBObject limit = (DBObject) JSON.parse("{ $limit: 100 }");
 			agg.add(count);
 			agg.add(moreThanAFew);
 			agg.add(sort);
+			agg.add(limit);
 
 			AggregationOutput res = coll.aggregate(agg);
 
@@ -108,11 +110,13 @@ public class CiberStatsController {
 			DBObject count = (DBObject) JSON
 					.parse("{ $group: { _id: \"$extension\", count: { $sum: \"$size\" } } }");
 			DBObject moreThanAFew = (DBObject) JSON
-					.parse("{ $match: { count: { $gte: 999 } } }");
+					.parse("{ $match: { count: { $gte: 999999 } } }");
 			DBObject sort = (DBObject) JSON.parse("{ $sort: { count: -1 } }");
+			DBObject limit = (DBObject) JSON.parse("{ $limit: 100 }");
 			agg.add(count);
 			agg.add(moreThanAFew);
 			agg.add(sort);
+			agg.add(limit);
 
 			AggregationOutput res = coll.aggregate(agg);
 

@@ -148,7 +148,6 @@
 
       // Word Cloud for Formats
       var fill = d3.scale.category10();
-      var fontSize = d3.scale.linear().domain([0, 26000000]).rangeRound([10, 100]);
 
       var svg1 = d3.select("#formatDist").insert("svg")
       .attr("width", 300)
@@ -158,46 +157,47 @@
       .attr("width", 300)
       .attr("height", 300);
 
-
       d3.json("/rest/ciberStats/formatDist", function(error, json) {
-        if (error) return console.warn(error);
-        var dist = json["formats"].slice(0,40);
-        wordCloud(dist, draw1);
-      });
+          handleFormatDist(error, json, svg1);
+        });
 
       d3.json("/rest/ciberStats/formatByteDist", function(error, json) {
+          handleFormatDist(error, json, svg2);
+        });
+
+      function handleFormatDist(error, json, svg) {
         if (error) return console.warn(error);
         var dist = json["formats"].slice(0,40);
-        wordCloud(dist, draw2);
-      });
-
-    function wordCloud(formatDist, drawFunction) {
-      d3.layout.cloud().size([300, 300])
-      .timeInterval(10)
-      .words(formatDist.map(function(d) {
-          return {text: d["_id"], count: d["count"] };
+        var highValue = dist[0]['count'];
+        var fontSize = d3.scale.linear().domain([0, highValue*2]).rangeRound([10, 100]);
+        for (var i = 0; i < dist.length; i++) {
+          dist[i]['fontSize'] = fontSize(dist[i]['count']);
+        }
+        d3.layout.cloud().size([300, 300])
+        .timeInterval(10)
+        .words(dist.map(function(d) {
+          return {text: d["_id"], count: d["count"], fontSize: d["fontSize"] };
         }))
-      .padding(5)
-      .rotate(function() { return ~~(Math.random() * 5) * 30 - 60; })
-      .font("Arial Black")
-      .fontSize(function(d) {
-          var s = fontSize(+d.count);
+        .padding(5)
+        .rotate(function() { return ~~(Math.random() * 5) * 30 - 60; })
+        .font("Arial Black")
+        .fontSize(function(d) {
+          var s = d.fontSize;
           return s;
-          }
-        )
-      .on("end", drawFunction)
-      .start();
-    }
+        })
+        .on("end", function(words) { draw(words, svg); })
+        .start();
+      }
 
-    function draw1(words) {
-      svg1
+    function draw(words, svg) {
+      svg
       .append("g")
       .attr("transform", "translate(150,150)")
       .selectAll("text")
       .data(words)
       .enter().append("text")
       .style("font-size", function(d) {
-        var s = fontSize(+d.count)+"px";
+        var s = d.fontSize+"px";
         return s;
       })
       .style("font-family", "Arial Black")
@@ -209,14 +209,14 @@
       .text(function(d) { return d.text; });
     }
 
-    function draw2(words) {
+    /*function draw2(words) {
       svg2
       .append("g")
       .attr("transform", "translate(150,150)")
       .selectAll("text")
       .data(words)
       .enter().append("text")
-      .style("font-size", function(d) {
+      /*.style("font-size", function(d) {
         var s = fontSize(+d.count)+"px";
         return s;
       })
@@ -227,7 +227,7 @@
         return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
       })
       .text(function(d) { return d.text; });
-    }
+    }*/
     </script>
   </body>
 </html>

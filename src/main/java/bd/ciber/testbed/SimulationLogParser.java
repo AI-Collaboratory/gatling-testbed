@@ -43,6 +43,7 @@ public class SimulationLogParser {
 	
 	static {
 		ignoredRequests.add("ignore this gatling request code");
+		simBrownDogRequestNames.put("default", Collections.singleton("postFile"));
 		simBrownDogRequestNames.put("documents2pdfsimulation", Collections.singleton("postFile"));
 		simBrownDogRequestNames.put("legacyimage2tiffsimulation", Collections.singleton("postFile"));
 	}
@@ -57,6 +58,9 @@ public class SimulationLogParser {
 		List<String> lines = (List<String>)FileUtils.readLines(simLogFile);
 		String simName = lines.get(0).split("\\t")[1];
 		Set<String> metricRequestNames = simBrownDogRequestNames.get(simName);
+		if(metricRequestNames == null) {
+			metricRequestNames = simBrownDogRequestNames.get("default");
+		}
 		long totalBrownDogTime = 0;
 		int totalBrownDogRequests = 0;
 		long maxBrownDogTime = 0;

@@ -92,10 +92,11 @@ public class GatlingSimulationRunner {
 			try {
 				count++;
 				run(simulation);
+				mongoResultsCollector.collectLatest(1);
 			} catch (ClassNotFoundException e) {
 				LOG.error("Cannot find simulation class", e);
 			}
 		}
-		mongoResultsCollector.collectLatest(count);
+		//mongoResultsCollector.collectLatest(count);
 	}
 }
