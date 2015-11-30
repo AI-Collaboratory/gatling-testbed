@@ -1,0 +1,19 @@
+---
+- hosts: all
+  sudo: True
+  user: vagrant
+  vars:
+    data_folder: /opt/testbed
+  tasks:
+    - name: deploy index
+      copy: src=/home/greg/workspace/gatling-testbed/src/main/webapp/index.html dest=/var/lib/tomcat7/webapps/ROOT/index.html owner=tomcat7 group=tomcat7
+      sudo: yes
+      sudo_user: tomcat7
+    - name: deploy static
+      copy: src=/home/greg/workspace/gatling-testbed/src/main/webapp/static/ dest=/var/lib/tomcat7/webapps/ROOT/static/ owner=tomcat7 group=tomcat7
+      sudo: yes
+      sudo_user: tomcat7
+    - name: deploy view templates
+      copy: src=/home/greg/workspace/gatling-testbed/src/main/webapp/WEB-INF/views/ dest=/var/lib/tomcat7/webapps/ROOT/WEB-INF/views/ owner=tomcat7 group=tomcat7
+      sudo: yes
+      sudo_user: tomcat7
