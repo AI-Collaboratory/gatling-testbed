@@ -6,38 +6,43 @@ import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import io.gatling.jdbc.Predef._
 
-class AlloySimulation extends Simulation {
-  val alloyUrl = "https://alloy.epcc.ed.ac.uk/"
-  val startPath = "api/cdmi/";
-  val bdusername = System.getProperty("indigousername");
-  val bdpassword = System.getProperty("indigopassword");
-  val httpAlloyProtocol = http.baseURL(alloyUrl).disableWarmUp
-  val headers_any = Map("Accept" -> "*/*")
-  val headers_container = Map("Accept" -> "application/cdmi-container")
+import org.slf4j.LoggerFactory
 
-  val scnLogin = scenario("alloy-login").exec(
+class IndigoSimulation extends Simulation {
+  val LOG = LoggerFactory.getLogger("bd.ciber.gatling.IndigoSimulation");
+  val indigoUrl = "http://ciber.umd.edu/api/cdmi"
+  val startPath = "/Archive/ciber/";
+  val indigousername = System.getProperty("indigousername");
+  val indigopassword = System.getProperty("indigopassword");
+  val httpIndigoProtocol = http.baseURL(indigoUrl).disableWarmUp.basicAuth(indigousername, indigopassword)
+  val headers_any = Map("Accept" -> "*/*")
+  val headers_container = Map(
+      "Accept" -> "application/cdmi-container",
+      "" -> "")
+
+  val scnLogin = scenario("indigo-login").exec(
     http("request_login")
-      .post(alloyUrl + "login")
+      .post(indigoUrl + "login")
       .headers(headers_any)
-      .formParam("username", "ciber")
-      .formParam("password", "Thee8oov"))
+      .formParam("username", indigousername)
+      .formParam("password", indigopassword))
 
   val shuffle = (list: Seq[String]) => util.Random.shuffle(list)
 
-  val scnList = scenario("alloy-list")
+  val scnList = scenario("indigo-list")
     .exec(session => {
       val list = List()
       session.set("children", list)
     })
     .exec(http("request_container")
-      .get(alloyUrl + "${path}")
+      .get(indigoUrl + "${path}")
       .headers(headers_container)
       .check(jsonPath("$.children[*]").findAll.transform(shuffle).exists.saveAs("children")))
       .exitHereIfFailed
 
   val isfolder = (list: Seq[String]) => list.head.endsWith("/")
 
-  val scnCrawlToData = scenario("alloy-crawl")
+  val scnCrawlToData = scenario("indigo-crawl")
     .exec(session => { session.set("path", startPath) })
     .asLongAs(session => { session.get("path").as[String].endsWith("/") })(
       exec(scnList)
@@ -59,13 +64,13 @@ class AlloySimulation extends Simulation {
             })
         } { exec(session => { session.set("path", "") }) })
 
-  val scnStart = scenario("testAlloyCrawlsToData")
-    .exec(scnLogin)
+  val scnStart = scenario("testCDMICrawlToData")
+    //.exec(scnLogin)
     .exec(scnCrawlToData)
     .exec(session => {
       println("Got Data Path: " + session("path").as[String])
       session
     })
 
-  setUp(scnStart.inject(atOnceUsers(10))).protocols(httpAlloyProtocol)
+  setUp(scnStart.inject(atOnceUsers(100))).protocols(httpIndigoProtocol)
 }

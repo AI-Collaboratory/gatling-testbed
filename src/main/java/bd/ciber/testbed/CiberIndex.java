@@ -96,6 +96,12 @@ public class CiberIndex {
 		public void close() throws IOException {
 			this.cursor.close();
 		}
+
+		@Override
+		public void remove() {
+			// TODO Auto-generated method stub
+			
+		}
 		
 	}
 }
