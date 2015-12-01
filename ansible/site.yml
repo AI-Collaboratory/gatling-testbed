@@ -1,0 +1,52 @@
+---
+- hosts: testbed
+  sudo: True
+  vars:
+    data_folder: /opt/testbed
+  tasks:
+    - name: Install packages
+      apt: name={{ item }} state=present update_cache=yes cache_valid_time=2592000
+      with_items:
+        - openjdk-7-jdk
+        - mongodb
+        - tomcat7
+        - nginx
+
+    - name: Configure Nginx (proxy for tomcat and ciber.umd.edu)
+      template: src=nginx-testbed.conf.j2 dest=/etc/nginx/conf.d/testbed.conf
+
+    - name: Configure mongodb
+      lineinfile: dest=/etc/mongodb.conf regexp=^dbpath= line=dbpath={{ data_folder }}/mongodb
+
+    - name: Set Tomcat JAVA_OPTS
+      lineinfile: dest=/etc/default/tomcat7 regexp=^JAVA_OPTS= line='JAVA_OPTS="-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dbdusername={{ bdusername }} -Dbdpassword={{ bdpassword }} -Ddtsusername={{ dtsusername }} -Ddtspassword={{ dtspassword }} -Xmx1g -XX:+UseConcMarkSweepGC"'
+
+    - name: Stop services
+      service: name={{ item }} enabled=yes state=stopped
+      with_items:
+        - tomcat7
+        - nginx
+
+    - name: Create data directories
+      file: dest={{ data_folder }} owner=tomcat7 group=tomcat7 state=directory
+    - file: dest={{ data_folder }}/gatling-data owner=tomcat7 group=tomcat7 state=directory
+    - file: dest={{ data_folder }}/gatling-results owner=tomcat7 group=tomcat7 state=directory
+    - file: dest={{ data_folder }}/gatling-bodies owner=tomcat7 group=tomcat7 state=directory
+    - file: dest={{ data_folder }}/mongodb owner=mongodb group=nogroup state=directory
+    - file: dest={{ data_folder }}/sample-files owner=tomcat7 group=tomcat7 state=directory
+
+    - name: Delete older ROOT dir
+      file: path=/var/lib/tomcat7/webapps/ROOT state=absent
+      sudo: yes
+      sudo_user: tomcat7
+
+    - name: Deploy WAR
+      copy: src=../target/testbed.war dest=/var/lib/tomcat7/webapps/ROOT.war owner=tomcat7 group=tomcat7
+      sudo: yes
+      sudo_user: tomcat7
+
+    - name: Start services
+      service: name={{ item }} enabled=yes state=started
+      with_items:
+        - tomcat7
+        - nginx
