@@ -9,11 +9,17 @@ import io.gatling.jdbc.Predef._
 
 import org.slf4j.LoggerFactory
 
-class IndigoSimulation extends Simulation {
+class ExtractCollectionSimulation extends Simulation {
   val LOG = LoggerFactory.getLogger("bd.ciber.gatling.IndigoSimulation");
   val cdmiProxyUrl = ""
+  val dtsUrl = ""
+  val commkey = ""
+  
+  val bdusername = System.getProperty("bdusername");
+  val bdpassword = System.getProperty("bdpassword");
   val startPath = "/Archive/ciber/RG 173 - Records of the Federal Communications Commission/";
   val httpProtocol = http.baseURL(cdmiProxyUrl).disableWarmUp
+  val headers_accept_json = Map("Accept" -> "application/json", "Content-type" -> "application/json")
   val headers_any = Map(
       "X-CDMI-Specification-Version" -> "1.1",
       "Accept" -> "*/*")
@@ -21,12 +27,11 @@ class IndigoSimulation extends Simulation {
       "X-CDMI-Specification-Version" -> "1.1",
       "Accept" -> "application/cdmi-container",
       "" -> "")
-
-  val shuffle = (list: Seq[String]) => util.Random.shuffle(list)
+      
+  val fileIDs = Queue[String]()
 
   val scnList = scenario("indigo-list")
     .exec( session => {
-      // println("Listing Collection: " + session("path").as[String])
       session.set("children", Seq())
     })
     .exec(http("request_container")
@@ -36,54 +41,47 @@ class IndigoSimulation extends Simulation {
     ).exitHereIfFailed
     .exec( session => {
         val path = session("path").as[String]
-        val children = session("children").as[Seq[String]].map( x => { path + x } )
+        val children = session("children").as[Seq[String]].map( x => { 
+            val enc = java.net.URLEncoder.encode(x.replaceAll("/", ""), "UTF-8")
+                  .replaceAll("\\+", "%20")
+            if (x.endsWith("/")) {
+                path + enc + "/"
+            } else {
+                path + enc
+            }
+          } )
         session.set("children", children)
       }
     )
-
-  val scnWalkToFile = scenario("indigo-crawl")
-    .exec(session => { session.set("path", cdmiProxyUrl + startPath) })
-    .asLongAs(session => { session.get("path").as[String].endsWith("/") })(
-      exec(scnList)
-        .doIfOrElse(session => {
-          session.contains("children") && session.get("children").as[Seq[String]].length > 0
-        }) {
-          exec(
-            session => {
-              val children = session.get("children").as[Seq[String]]
-              // FIXME: shuffle the child order or pick at random
-              val path = session.get("path").as[String]
-              val raw = children.head
-              val trim = raw.replaceAll("/", "");
-              val enc = java.net.URLEncoder.encode(trim, "UTF-8")
-                .replaceAll("\\+", "%20")
-              session.set("parent", path)
-              if (raw.endsWith("/")) {
-                session.set("path", path + enc + "/")
-              } else {
-                session.set("path", path + enc)
-              }
-            })
-        } { exec(session => {
-                println("Empty collection, dead end: " + session("path").as[String])
-                session
-              })
-        })
+    
+  val scnPostFileToExtract = scenario("post-file-to-extract")
+    .exec(http("postFile")
+        .post(dtsUrl + "/api/extractions/upload_url?key="+commkey)
+        .headers(headers_accept_json)
+        .body(StringBody("""{ "fileurl": "${path}" }"""))
+        .check(jsonPath("$.id").ofType[String].saveAs("id"))
+    ).exitHereIfFailed
+    .exec( session => {
+      val resp = session("id").asOption[String]
+      resp match {
+        case None => println("no response")
+        case Some(x) => fileIDs.enqueue(x)
+      }
+      session
+    })
         
-  val scnCrawlAllFiles = scenario("indigo-crawl-all-files")
+  val scnLevelFirstCrawl = scenario("level-first-crawl")
     .exec(session => { 
         session.set("pathQueue", Queue[String]()).set("path", cdmiProxyUrl + startPath)
       }
     )
     .asLongAs(session => { session("path").as[String] != "" }
     )(
-      exec(session => {
-        println( session("path").as[String] )
-        session
+      doIfOrElse(session => {
+        !session("path").as[String].endsWith("/")
       })
-      .doIf(session => {
-        session("path").as[String].endsWith("/")
-      }) (
+      (exec(scnPostFileToExtract))
+      (
         exec(scnList)
         .exec( session => {
             val children = session("children").as[Seq[String]]
@@ -106,14 +104,5 @@ class IndigoSimulation extends Simulation {
       )      
     )
 
-     
-
-  val scnStart = scenario("testCDMIWalkToFile")
-    .exec(scnWalkToFile)
-    .exec(session => {
-      println("Got Data Path: " + session("path").as[String])
-      session
-    })
-
-  setUp(scnCrawlAllFiles.inject(atOnceUsers(1))).protocols(httpProtocol)
+  setUp(scnLevelFirstCrawl.inject(atOnceUsers(1))).protocols(httpProtocol)
 }

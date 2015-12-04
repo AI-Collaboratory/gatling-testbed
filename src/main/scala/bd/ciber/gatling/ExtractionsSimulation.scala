@@ -9,11 +9,12 @@ import io.gatling.core.validation.Validation
 import io.gatling.core.validation.Validation
 import io.gatling.core.validation.Validation
 
-class Documents2PDFCoverageSimulation extends Simulation {
-  final val LOG = org.slf4j.LoggerFactory.getLogger("documents2pdfcoverage");
+class ExtractionsSimulation extends Simulation {
+  final val LOG = org.slf4j.LoggerFactory.getLogger("ExtractionsSimulation");
   val bdusername = System.getProperty("bdusername");
   val bdpassword = System.getProperty("bdpassword");
-  val dapUrl = "http://dap-dev.ncsa.illinois.edu:8184/"
+  val alloy: IndigoSimulation = new IndigoSimulation()
+  val dapUrl = "http://dap-dev.ncsa.illinois.edu:8184/" // FIXME
   val httpProtocol = http.baseURL(dapUrl).disableWarmUp.basicAuth(bdusername, bdpassword)
   LOG.info("Got Brown Dog AuthN username "+bdusername+", password "+bdpassword)
   val headers_text = Map("Accept" -> "text/plain")
@@ -32,7 +33,7 @@ class Documents2PDFCoverageSimulation extends Simulation {
       } else {
         Map("path" -> dummy)
       }
-    )   
+    )
       
   val includesMyExtension = (conversionInputs: Option[String], session: Session) => {
     val path = session("path").as[String]

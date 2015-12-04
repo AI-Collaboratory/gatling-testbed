@@ -2,7 +2,7 @@
 ciber-testbed.example.edu
 
 [testbed:vars]
-data_folder=/opt/testbed
+data_path=/opt/testbed
 bdusername=mybrowndog
 bdpassword=bdpass
 dtsusername=user@example.com
