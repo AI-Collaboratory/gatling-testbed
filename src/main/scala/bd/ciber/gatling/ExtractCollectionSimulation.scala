@@ -11,13 +11,11 @@ import org.slf4j.LoggerFactory
 
 class ExtractCollectionSimulation extends Simulation {
   val LOG = LoggerFactory.getLogger("bd.ciber.gatling.IndigoSimulation");
-  val cdmiProxyUrl = ""
-  val dtsUrl = ""
-  val commkey = ""
+  val cdmiProxyUrl = System.getProperty("cdmiProxyUrl");
+  val dtsUrl = System.getProperty("dtsUrl");
+  val commkey = System.getProperty("dtsCommKey");
+  val startPath = System.getProperty("dtsTestPath1");
   
-  val bdusername = System.getProperty("bdusername");
-  val bdpassword = System.getProperty("bdpassword");
-  val startPath = "/Archive/ciber/RG 173 - Records of the Federal Communications Commission/";
   val httpProtocol = http.baseURL(cdmiProxyUrl).disableWarmUp
   val headers_accept_json = Map("Accept" -> "application/json", "Content-type" -> "application/json")
   val headers_any = Map(
@@ -55,7 +53,7 @@ class ExtractCollectionSimulation extends Simulation {
     )
     
   val scnPostFileToExtract = scenario("post-file-to-extract")
-    .exec(http("postFile")
+    .exec(http("postUrl")
         .post(dtsUrl + "/api/extractions/upload_url?key="+commkey)
         .headers(headers_accept_json)
         .body(StringBody("""{ "fileurl": "${path}" }"""))
@@ -69,6 +67,13 @@ class ExtractCollectionSimulation extends Simulation {
       }
       session
     })
+    
+  val scnPollUntilExtracted = scenario("poll-until-extracted")
+    .exec(http("pollUrl")
+        .post(dtsUrl + "/api/extractions/${id}/status?key="+commkey)
+        .headers(headers_accept_json)
+        .check(jsonPath("$.id").ofType[String].saveAs("id"))
+    )
         
   val scnLevelFirstCrawl = scenario("level-first-crawl")
     .exec(session => { 

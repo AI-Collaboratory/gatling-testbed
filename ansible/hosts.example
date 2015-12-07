@@ -1,10 +1,19 @@
 [testbed]
-ciber-testbed.example.edu
+ciber-testbed.example.com
 
 [testbed:vars]
-data_path=/opt/testbed
-bdusername=mybrowndog
-bdpassword=bdpass
-dtsusername=user@example.com
-dtspassword=userpw
+data_folder=/opt/testbed
+
 ciber_basic_auth_plaintext=testbed4U:mypassword
+cdmi_proxy_url=http://www.example.com/cdmi/proxy
+
+dap_url=http://dap-dev.example.com:8184/
+dap_username=mybrowndog
+dap_password=bdpass
+
+dts_url=dts.example.com:9000
+dts_comm_key=98239iuf
+dts_username=user@example.com
+dts_password=userpw
+
+dts_test_path1=/Archive/ciber/173 - Records of the Federal Communications Commission

@@ -1,20 +1,18 @@
 package bd.ciber.testbed;
 
-import java.io.IOException;
-import java.util.Enumeration;
-import java.util.Properties;
-
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
-import java.util.Set;
+import java.util.Properties;
+
+import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import scala.Option;
 
@@ -30,7 +28,9 @@ public class GatlingSimulationRunner {
 
 	@Value("${bodiesFolder}")
 	private String bodiesFolder;
-
+	
+	@Resource(name = "simulationProperties")
+	private Properties simulationProperties;
 	
 	List<String> simulations;
 
@@ -46,24 +46,13 @@ public class GatlingSimulationRunner {
 	private MongoResultsCollector mongoResultsCollector;
 
 	public void run(String simulation) throws ClassNotFoundException {
-		// Put parameters into System properties
-		Properties testprops = new Properties();
-		try {
-			testprops.load(GatlingSimulationRunner.class
-					.getResourceAsStream("/testbed.properties"));
-			for (Enumeration<Object> keys = testprops.keys(); keys
-					.hasMoreElements();) {
-				String key = (String) keys.nextElement();
-				if (key.startsWith(simulation)) {
-					String simkey = key.substring(simulation.length()+1);
-					System.setProperty(simkey, testprops.getProperty(key));
-				}
-			}
-		} catch (IOException e) {
-			throw new Error(e);
+		// Put simulation properties into System properties
+		for (Enumeration<Object> keys = simulationProperties.keys(); 
+				keys.hasMoreElements();) {
+			String key = (String) keys.nextElement();
+			System.setProperty(key, simulationProperties.getProperty(key));
 		}
 
-		// Arguments
 		Class c = GatlingSimulationRunner.class.getClassLoader().loadClass(
 				simulation);
 		Option simul = Option.apply(c);

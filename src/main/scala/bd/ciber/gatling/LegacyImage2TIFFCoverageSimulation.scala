@@ -11,11 +11,12 @@ import io.gatling.core.validation.Validation
 
 class LegacyImage2TIFFCoverageSimulation extends Simulation {
   final val LOG = org.slf4j.LoggerFactory.getLogger("legacyimage2tiffcoverage");
-  val bdusername = System.getProperty("bdusername");
-  val bdpassword = System.getProperty("bdpassword");
-  val dapUrl = "http://dap-dev.ncsa.illinois.edu:8184/"
-  val httpProtocol = http.baseURL(dapUrl).disableWarmUp.basicAuth(bdusername, bdpassword)
-  LOG.info("Got Brown Dog AuthN username "+bdusername+", password "+bdpassword)
+  val dapUsername = System.getProperty("dapUsername");
+  val dapPassword = System.getProperty("dapPassword");
+  val dapUrl = System.getProperty("dapUrl");
+  
+  val httpProtocol = http.baseURL(dapUrl).disableWarmUp.basicAuth(dapUsername, dapPassword)
+  LOG.info("Got Brown Dog AuthN username "+dapUsername+", password "+dapPassword)
   val headers_text = Map("Accept" -> "text/plain")
   val randomSeed = Math.random.toFloat
   val ciberIndex = new bd.ciber.testbed.CiberIndex();

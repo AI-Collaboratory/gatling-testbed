@@ -11,24 +11,17 @@ import io.gatling.core.validation.Validation
 
 class Documents2PDFSimulation extends Simulation {
   final val LOG = org.slf4j.LoggerFactory.getLogger("documents2pdf");
-  val bdusername = System.getProperty("bdusername");
-  val bdpassword = System.getProperty("bdpassword");
-  //val samplesFolder = System.getProperty("samplesFolder");
-  //val alloy: AlloySimulation = new AlloySimulation()
-  val dapUrl = "http://dap-dev.ncsa.illinois.edu:8184/"
-  val httpProtocol = http.baseURL(dapUrl).disableWarmUp.basicAuth(bdusername, bdpassword)
-  LOG.info("Got Brown Dog AuthN username "+bdusername+", password "+bdpassword)
+  val dapUsername = System.getProperty("dapUsername");
+  val dapPassword = System.getProperty("dapPassword");
+  val dapUrl = System.getProperty("dapUrl");
+  
+  val httpProtocol = http.baseURL(dapUrl).disableWarmUp.basicAuth(dapUsername, dapPassword)
+  LOG.info("Got Brown Dog AuthN username "+dapUsername+", password "+dapPassword)
   val headers_text = Map("Accept" -> "text/plain")
+  
   val randomSeed = new java.lang.Float(.39855721)
   val ciberIndex = new bd.ciber.testbed.CiberIndex();
   ciberIndex.setMongoClient(new com.mongodb.MongoClient());
-  
-  //val sampleFiles = new java.io.File(samplesFolder).listFiles().toIterator
-  //val feeder = Iterator.continually(Map("path" -> (sampleFiles.filter(_.isFile).next.getAbsolutePath)))
-  
-  //val feeder = Iterator.fill(1000)(Map("path" -> (
-  //    ciberIndex.get(1000, randomSeed, 100, 20e6.toInt, "DOC", "DOCX", "ODF", "RTF", "WPD", "WP", "LWP", "WSD").next)))
-  
   val samples = ciberIndex.get(1000, randomSeed, 100, 20e6.toInt, "DOC", "DOCX", "ODF", "RTF", "WPD", "WP", "LWP", "WSD");
   val feeder = Iterator.continually(Map("path" -> (samples.next)))
         

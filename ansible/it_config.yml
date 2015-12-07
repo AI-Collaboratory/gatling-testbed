@@ -1,0 +1,4 @@
+---
+- hosts: localhost
+  tasks:
+  - template: src=templates/simulation.properties.j2 dest=/home/jansen/simulation.properties
