@@ -15,6 +15,8 @@ class ExtractCollectionSimulation extends Simulation {
   val dtsUrl = System.getProperty("dtsUrl");
   val commkey = System.getProperty("dtsCommKey");
   val startPath = System.getProperty("dtsTestPath1");
+  print(dtsUrl)
+  print(commkey)
   
   val httpProtocol = http.baseURL(cdmiProxyUrl).disableWarmUp
   val headers_accept_json = Map("Accept" -> "application/json", "Content-type" -> "application/json")
@@ -23,10 +25,10 @@ class ExtractCollectionSimulation extends Simulation {
       "Accept" -> "*/*")
   val headers_container = Map(
       "X-CDMI-Specification-Version" -> "1.1",
-      "Accept" -> "application/cdmi-container",
-      "" -> "")
+      "Accept" -> "application/cdmi-container")
       
-  val fileIDs = Queue[String]()
+  val filePaths = Queue[String]()
+  val feeder = Iterator.continually( Map("path" -> ( filePaths.dequeue() )) ) 
 
   val scnList = scenario("indigo-list")
     .exec( session => {
@@ -53,29 +55,31 @@ class ExtractCollectionSimulation extends Simulation {
     )
     
   val scnPostFileToExtract = scenario("post-file-to-extract")
+    .feed(feeder)
     .exec(http("postUrl")
         .post(dtsUrl + "/api/extractions/upload_url?key="+commkey)
         .headers(headers_accept_json)
-        .body(StringBody("""{ "fileurl": "${path}" }"""))
+        .body(StringBody("{ \"fileurl\": \"${path}\" }"))
         .check(jsonPath("$.id").ofType[String].saveAs("id"))
     ).exitHereIfFailed
-    .exec( session => {
-      val resp = session("id").asOption[String]
-      resp match {
-        case None => println("no response")
-        case Some(x) => fileIDs.enqueue(x)
-      }
+    .exec( session => {      
+      val resp = session("id").as[String]
+      println(resp+" has path: "+ session("path").as[String])
       session
     })
-    
-  val scnPollUntilExtracted = scenario("poll-until-extracted")
     .exec(session => { session.set("body", "") })
     .asLongAs( session => { session("body").as[String] == "" }) (
       exec(http("pollUrl")
-        .post(dtsUrl + "/api/extractions/${id}/status?key="+commkey)
+        .get(dtsUrl + "/api/extractions/${id}/status?key="+commkey)
         .headers(headers_accept_json)
         .check(bodyString.exists.saveAs("body"))
-    ))
+      ).exec(session => {
+          println(session("body").as[String])
+          session
+        }
+      )
+    )
+    
         
   val scnLevelFirstCrawl = scenario("level-first-crawl")
     .exec(session => { 
@@ -87,13 +91,18 @@ class ExtractCollectionSimulation extends Simulation {
       doIfOrElse(session => {
         !session("path").as[String].endsWith("/")
       })
-      (exec(scnPostFileToExtract))
+      (exec(session => { 
+        filePaths.enqueue( session("path").as[String] )
+        session
+        }))
       (
         exec(scnList)
         .exec( session => {
             val children = session("children").as[Seq[String]]
             val pathQueue = session("pathQueue").as[Queue[String]]
-            children foreach { x => pathQueue enqueue x }
+            children foreach { x => 
+              pathQueue enqueue x 
+            }
             session
           }
         )
@@ -111,5 +120,8 @@ class ExtractCollectionSimulation extends Simulation {
       )      
     )
 
-  setUp(scnLevelFirstCrawl.inject(atOnceUsers(1))).protocols(httpProtocol)
+  setUp(
+      scnLevelFirstCrawl.inject(atOnceUsers(1)),
+      scnPostFileToExtract.inject(nothingFor(30 seconds),atOnceUsers(10))
+  ).protocols(httpProtocol)
 }
