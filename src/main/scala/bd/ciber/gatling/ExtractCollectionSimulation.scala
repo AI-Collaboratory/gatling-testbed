@@ -72,7 +72,8 @@ class ExtractCollectionSimulation extends Simulation {
       exec(http("pollUrl")
         .get(dtsUrl + "/api/extractions/${id}/status?key="+commkey)
         .headers(headers_accept_json)
-        .check(bodyString.exists.saveAs("body"))
+        .check(bodyString.exists.saveAs("body")
+            )
       ).exec(session => {
           println(session("body").as[String])
           session
