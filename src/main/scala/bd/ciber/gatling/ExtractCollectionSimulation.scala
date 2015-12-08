@@ -69,11 +69,13 @@ class ExtractCollectionSimulation extends Simulation {
     })
     
   val scnPollUntilExtracted = scenario("poll-until-extracted")
-    .exec(http("pollUrl")
+    .exec(session => { session.set("body", "") })
+    .asLongAs( session => { session("body").as[String] == "" }) (
+      exec(http("pollUrl")
         .post(dtsUrl + "/api/extractions/${id}/status?key="+commkey)
         .headers(headers_accept_json)
-        .check(jsonPath("$.id").ofType[String].saveAs("id"))
-    )
+        .check(bodyString.exists.saveAs("body"))
+    ))
         
   val scnLevelFirstCrawl = scenario("level-first-crawl")
     .exec(session => { 
