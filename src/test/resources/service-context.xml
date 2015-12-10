@@ -14,7 +14,6 @@
 	<util:properties id="simulationProperties" location="#{systemProperties['simulation.properties']}"/>
 
 	<bean id="gatlingSimulationRunner" class="bd.ciber.testbed.GatlingSimulationRunner">
-		<!-- <property name="simulationProperties" ref="simulationProperties"/> -->
 		<property name="simulations">
 			<list>
 				<value>bd.ciber.gatling.Documents2PDFSimulation</value>

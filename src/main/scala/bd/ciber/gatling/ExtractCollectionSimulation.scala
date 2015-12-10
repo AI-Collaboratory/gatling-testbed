@@ -67,14 +67,18 @@ class ExtractCollectionSimulation extends Simulation {
       println(resp+" has path: "+ session("path").as[String])
       session
     })
-    .exec(session => { session.set("body", "") })
-    .asLongAs( session => { session("body").as[String] == "" }) (
+    .exec(session => { session.set("status", "") })
+    .asLongAs( session => { session("status").as[String].toLowerCase() != "done" }) (
       exec(http("pollUrl")
         .get(dtsUrl + "/api/extractions/${id}/status?key="+commkey)
         .headers(headers_accept_json)
-        .check(bodyString.exists.saveAs("body"))
-      ).exec(session => {
-          println(session("body").as[String])
+        .check(jsonPath("$.Status").ofType[String]
+            .in("Done", "Processing")
+            .saveAs("status"))
+      ).exitHereIfFailed
+      .pause(1)
+      .exec(session => {
+          println(session("status").as[String])
           session
         }
       )
@@ -121,7 +125,7 @@ class ExtractCollectionSimulation extends Simulation {
     )
 
   setUp(
-      scnLevelFirstCrawl.inject(atOnceUsers(1)),
-      scnPostFileToExtract.inject(nothingFor(30 seconds),atOnceUsers(10))
+      scnLevelFirstCrawl.inject( atOnceUsers(1) ),
+      scnPostFileToExtract.inject( nothingFor(120), rampUsers(200) over(200))
   ).protocols(httpProtocol)
 }

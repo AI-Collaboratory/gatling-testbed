@@ -13,13 +13,16 @@
         - nginx
 
     - name: Configure Nginx (proxy for tomcat and ciber.umd.edu)
-      template: src=nginx-testbed.conf.j2 dest=/etc/nginx/conf.d/testbed.conf
+      template: src=templates/nginx-testbed.conf.j2 dest=/etc/nginx/conf.d/testbed.conf
 
     - name: Configure mongodb
       lineinfile: dest=/etc/mongodb.conf regexp=^dbpath= line=dbpath={{ data_folder }}/mongodb
 
+    - name: Configure simulation properties
+      template: src=templates/simulation.properties.j2 dest=/etc/simulation.properties
+
     - name: Set Tomcat JAVA_OPTS
-      lineinfile: dest=/etc/default/tomcat7 regexp=^JAVA_OPTS= line='JAVA_OPTS="-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dbdusername={{ bdusername }} -Dbdpassword={{ bdpassword }} -Ddtsusername={{ dtsusername }} -Ddtspassword={{ dtspassword }} -Xmx1g -XX:+UseConcMarkSweepGC"'
+      lineinfile: dest=/etc/default/tomcat7 regexp=^JAVA_OPTS= line='JAVA_OPTS="-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dsimulation.properties=file:/etc/simulation.properties -Xmx1g -XX:+UseConcMarkSweepGC"'
 
     - name: Stop services
       service: name={{ item }} enabled=yes state=stopped

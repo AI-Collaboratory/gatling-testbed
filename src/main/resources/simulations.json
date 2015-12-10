@@ -22,5 +22,11 @@
 		"scale": "1000 users",
 		"description" : "This simulation takes a new random sample of visual images in older formats. Simulating 1000 users, it searches for images the DAP cannot convert to TIFF, a preservation format.",
 		"formats" : [ "TARGA", "PICT", "BMP", "TGA", "PCT", "EPS", "MACPAINT", "MSP", "PCX" ]
+	},
+	"extractcollectionsimulation": {
+		"name": "Extract Metadata for Collection",
+		"scale": "200 files",
+		"description" : "This simulation posts 200 loosely related files from the same archival collection to the Data Tiling Service and polls for completed extraction jobs.",
+		"formats" : [ "Unrestricted by Format" ]
 	}
 }

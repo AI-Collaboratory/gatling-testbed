@@ -130,8 +130,7 @@ public class MongoResultsCollector {
 			} catch(IOException e) {
 				LOG.error("Unexpected IO Errors reading simulation log", e);
 			}
-			
-			stats.update(simRef, statsObject, true, false);			
+			stats.update(simRef, statsObject, true, false);
 		} catch (UnknownHostException e) {
 			LOG.error("Unexpected", e);
 			throw new Error(e);

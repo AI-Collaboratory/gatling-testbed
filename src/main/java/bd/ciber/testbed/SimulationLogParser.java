@@ -46,7 +46,7 @@ public class SimulationLogParser {
 		simBrownDogRequestNames.put("default", Collections.singleton("postFile"));
 		simBrownDogRequestNames.put("documents2pdfsimulation", Collections.singleton("postFile"));
 		simBrownDogRequestNames.put("legacyimage2tiffsimulation", Collections.singleton("postFile"));
-		simBrownDogRequestNames.put("extractcollectionsimulation", new HashSet<String>(Arrays.asList("postUrl", "pollFileId")));
+		simBrownDogRequestNames.put("extractcollectionsimulation", new HashSet<String>(Arrays.asList("postUrl", "pollUrl")));
 	}
 	
 	// /simulation.log KO example (spaces added)
