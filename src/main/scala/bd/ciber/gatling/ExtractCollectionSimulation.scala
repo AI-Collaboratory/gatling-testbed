@@ -73,10 +73,12 @@ class ExtractCollectionSimulation extends Simulation {
         .get(dtsUrl + "/api/extractions/${id}/status?key="+commkey)
         .headers(headers_accept_json)
         .check(jsonPath("$.Status").ofType[String]
-            .in("Done", "Processing")
+            .in("Done",
+                "Processing",
+                "Required Extractor is either busy or is not currently running. Try after some time.")
             .saveAs("status"))
       ).exitHereIfFailed
-      .pause(1)
+      .pause(2)
       .exec(session => {
           println(session("status").as[String])
           session
@@ -126,6 +128,6 @@ class ExtractCollectionSimulation extends Simulation {
 
   setUp(
       scnLevelFirstCrawl.inject( atOnceUsers(1) ),
-      scnPostFileToExtract.inject( nothingFor(120), rampUsers(200) over(200))
+      scnPostFileToExtract.inject( nothingFor(120), rampUsers(100) over(300))
   ).protocols(httpProtocol)
 }

@@ -20,6 +20,7 @@
 				<value>bd.ciber.gatling.Documents2PDFCoverageSimulation</value>
 				<value>bd.ciber.gatling.LegacyImage2TIFFSimulation</value>
 				<value>bd.ciber.gatling.LegacyImage2TIFFCoverageSimulation</value>
+				<value>bd.ciber.gatling.ExtractCollectionSimulation</value>
 			</list>
 		</property>
 	</bean>
