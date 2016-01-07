@@ -73,6 +73,7 @@ public class MongoResultsCollector {
 	 * @param foldersToExamine looks at the latest N folders
 	 */
 	public void collectLatest(int foldersToExamine) {
+		LOG.info("Collecting {} simulation results to MongoDB", foldersToExamine);
 		File[] resFolders = getLatestResultsFolders(foldersToExamine);
 		for(File resFolder : resFolders) {
 			String fldNm = resFolder.getName();

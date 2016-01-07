@@ -6,6 +6,7 @@ import scala.collection.mutable.Queue
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import io.gatling.jdbc.Predef._
+import io.gatling.http.check.HttpCheck
 
 import org.slf4j.LoggerFactory
 
@@ -28,8 +29,8 @@ class ExtractCollectionSimulation extends Simulation {
       "Accept" -> "application/cdmi-container")
       
   val filePaths = Queue[String]()
-  val feeder = Iterator.continually( Map("path" -> ( filePaths.dequeue() )) ) 
-
+  val feeder = Iterator.continually( Map("path" -> ( filePaths.dequeue() )) )
+  
   val scnList = scenario("indigo-list")
     .exec( session => {
       session.set("children", Seq())
