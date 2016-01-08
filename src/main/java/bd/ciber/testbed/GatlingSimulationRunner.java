@@ -53,6 +53,7 @@ public class GatlingSimulationRunner {
 
 	public void run(String simulation) throws ClassNotFoundException {
 		LOG.info("SIMULATION START: {}", simulation);
+		this.currentlyRunningSimulation = simulation;
 		// Put simulation properties into System properties
 		for (Enumeration<Object> keys = simulationProperties.keys(); 
 				keys.hasMoreElements();) {
@@ -77,7 +78,8 @@ public class GatlingSimulationRunner {
 		} catch(Exception e) {
 			LOG.error("Simulation {} threw an exception", simulation, e);
 		}
-		LOG.info("SIMULATION START: {}", simulation);
+		this.currentlyRunningSimulation = "None";
+		LOG.info("SIMULATION ENDED: {}", simulation);
 	}
 
 	// @Scheduled(cron="*/10 * * * * *")

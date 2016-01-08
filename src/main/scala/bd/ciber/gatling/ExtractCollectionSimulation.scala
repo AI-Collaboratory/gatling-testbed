@@ -1,12 +1,17 @@
 package bd.ciber.gatling
 
 import scala.concurrent.duration._
+
+import io.gatling.core.validation._
+import io.gatling.core.validation.Validation
 import scala.collection.mutable.Queue
 
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import io.gatling.jdbc.Predef._
-import io.gatling.http.check.HttpCheck
+
+//import io.gatling.core.validation.Validation
+//import io.gatling.http.check.HttpCheck
 
 import org.slf4j.LoggerFactory
 
@@ -55,6 +60,18 @@ class ExtractCollectionSimulation extends Simulation {
       }
     )
     
+  val statusTransformOption = (input: Option[String], session: Session) => {
+    val path = session("path").as[String]
+    val extension = path.substring(path.lastIndexOf(".") + 1).toLowerCase()
+    input.get match {
+      case "Done" => Success(Option("Done"))
+      case "Processing" => Success(Option("Processing"))
+      case "Required Extractor is either busy or is not currently running. Try after some time." => 
+        Failure("An extractor was busy or not running for " + extension + " at " + path)
+      case x => Failure("The DTS failed to extract for "+ extension + " at " + path + " with status: "+x)
+    }
+  } 
+   
   val scnPostFileToExtract = scenario("post-file-to-extract")
     .feed(feeder)
     .exec(http("postUrl")
@@ -73,18 +90,14 @@ class ExtractCollectionSimulation extends Simulation {
       exec(http("pollUrl")
         .get(dtsUrl + "/api/extractions/${id}/status?key="+commkey)
         .headers(headers_accept_json)
-        .check(jsonPath("$.Status").ofType[String]
-            .in("Done",
-                "Processing",
-                "Required Extractor is either busy or is not currently running. Try after some time.")
+        .check(jsonPath("$.Status").ofType[String].transformOption(statusTransformOption)
             .saveAs("status"))
       ).exitHereIfFailed
-      .pause(2)
       .exec(session => {
           println(session("status").as[String])
           session
         }
-      )
+      ).pause(2)
     )
     
         

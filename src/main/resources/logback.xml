@@ -13,6 +13,8 @@
 	<!-- Uncomment for logging ONLY FAILED HTTP request and responses -->
 	<!-- 	<logger name="io.gatling.http.ahc.AsyncHandlerActor" level="DEBUG" /> -->
 
+	<logger name="bd.ciber.testbed" level="INFO" />
+	
 	<root level="WARN">
 		<appender-ref ref="CONSOLE" />
 	</root>
