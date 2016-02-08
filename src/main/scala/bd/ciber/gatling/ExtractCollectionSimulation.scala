@@ -21,8 +21,7 @@ class ExtractCollectionSimulation extends Simulation {
   val dtsUrl = System.getProperty("dtsUrl");
   val commkey = System.getProperty("dtsCommKey");
   val startPath = System.getProperty("dtsTestPath1");
-  print(dtsUrl)
-  print(commkey)
+  LOG.info("Using DTS at URL: "+dtsUrl)
   
   val httpProtocol = http.baseURL(cdmiProxyUrl).disableWarmUp
   val headers_accept_json = Map("Accept" -> "application/json", "Content-type" -> "application/json")
@@ -34,17 +33,18 @@ class ExtractCollectionSimulation extends Simulation {
       "Accept" -> "application/cdmi-container")
       
   val filePaths = Queue[String]()
-  val feeder = Iterator.continually( Map("path" -> ( filePaths.dequeue() )) )
+  val feeder = Iterator.continually( Map("path" -> ( filePaths.dequeue )) )
   
   val scnList = scenario("indigo-list")
     .exec( session => {
+      LOG.info( "Getting list for: " + session.get("path").as[String] )
       session.set("children", Seq())
     })
     .exec(http("request_container")
       .get("${path}")
       .headers(headers_container)
       .check(jsonPath("$.children[*]").findAll.exists.saveAs("children"))
-    ).exitHereIfFailed
+    ) // removed .exitHereIfFailed b/c scenario must continue past empty dir
     .exec( session => {
         val path = session("path").as[String]
         val children = session("children").as[Seq[String]].map( x => { 
@@ -82,7 +82,7 @@ class ExtractCollectionSimulation extends Simulation {
     ).exitHereIfFailed
     .exec( session => {      
       val resp = session("id").as[String]
-      println(resp+" has path: "+ session("path").as[String])
+      LOG.info(resp+" has path: "+ session("path").as[String])
       session
     })
     .exec(session => { session.set("status", "") })
@@ -94,7 +94,7 @@ class ExtractCollectionSimulation extends Simulation {
             .saveAs("status"))
       ).exitHereIfFailed
       .exec(session => {
-          println(session("status").as[String])
+          LOG.info(session("status").as[String])
           session
         }
       ).pause(2)
@@ -103,6 +103,7 @@ class ExtractCollectionSimulation extends Simulation {
         
   val scnLevelFirstCrawl = scenario("level-first-crawl")
     .exec(session => { 
+        LOG.info("Starting crawl at: " + cdmiProxyUrl + startPath)
         session.set("pathQueue", Queue[String]()).set("path", cdmiProxyUrl + startPath)
       }
     )
@@ -137,11 +138,15 @@ class ExtractCollectionSimulation extends Simulation {
           }
           session.set("path", next)
         }
-      )      
+      )
     )
+    .exec( session => {
+      LOG.info("Gathered this many file paths: "+filePaths.size)
+      session
+    })
 
   setUp(
       scnLevelFirstCrawl.inject( atOnceUsers(1) ),
-      scnPostFileToExtract.inject( nothingFor(120), rampUsers(100) over(300))
+      scnPostFileToExtract.inject( nothingFor(500), rampUsers(200) over(300))
   ).protocols(httpProtocol)
 }
