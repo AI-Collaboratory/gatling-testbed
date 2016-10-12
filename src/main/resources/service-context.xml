@@ -13,6 +13,14 @@
 
 	<util:properties id="simulationProperties" location="#{systemProperties['simulation.properties']}"/>
 
+	<bean id="exporter" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false">
+	  <property name="beans">
+	    <map>
+	      <entry key="bean:name=gatlingSimulationRunner" value-ref="gatlingSimulationRunner"/>
+	    </map>
+	  </property>
+	</bean>
+
 	<bean id="gatlingSimulationRunner" class="bd.ciber.testbed.GatlingSimulationRunner">
 		<property name="simulations">
 			<list>
@@ -21,6 +29,7 @@
 				<value>bd.ciber.gatling.Documents2PDFCoverageSimulation</value>
 				<value>bd.ciber.gatling.LegacyImage2TIFFSimulation</value>
 				<value>bd.ciber.gatling.LegacyImage2TIFFCoverageSimulation</value>
+				<value>bd.ciber.gatling.StressTestExtraction</value>
 			</list>
 		</property>
 	</bean>
@@ -28,8 +37,8 @@
 	<bean id="mongoResultsCollector" class="bd.ciber.testbed.MongoResultsCollector"/>
 	
 	<task:scheduler id="myScheduler" pool-size="1" />
-	<task:scheduled-tasks scheduler="myScheduler">
+	<!--task:scheduled-tasks scheduler="myScheduler">
 		<task:scheduled ref="gatlingSimulationRunner" method="runAll" initial-delay="30000" fixed-delay="3600000"/>
-	</task:scheduled-tasks>
+	</task:scheduled-tasks-->
 	
 </beans>

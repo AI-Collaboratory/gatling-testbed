@@ -1,5 +1,5 @@
 ---
-- hosts: testbed
+- hosts: ciber-gatling
   sudo: True
   vars:
     data_folder: /opt/testbed
@@ -10,10 +10,6 @@
         - openjdk-7-jdk
         - mongodb
         - tomcat7
-        - nginx
-
-    - name: Configure Nginx (proxy for tomcat and ciber.umd.edu)
-      template: src=templates/nginx-testbed.conf.j2 dest=/etc/nginx/conf.d/testbed.conf
 
     - name: Configure mongodb
       lineinfile: dest=/etc/mongodb.conf regexp=^dbpath= line=dbpath={{ data_folder }}/mongodb
@@ -28,7 +24,6 @@
       service: name={{ item }} enabled=yes state=stopped
       with_items:
         - tomcat7
-        - nginx
 
     - name: Create data directories
       file: dest={{ data_folder }} owner=tomcat7 group=tomcat7 state=directory
@@ -52,4 +47,3 @@
       service: name={{ item }} enabled=yes state=started
       with_items:
         - tomcat7
-        - nginx

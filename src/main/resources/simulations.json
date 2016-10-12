@@ -28,5 +28,11 @@
 		"scale": "100 files",
 		"description" : "This simulation posts 100 loosely related files from the same archival collection to the Data Tiling Service and polls for completed extraction jobs.",
 		"formats" : [ "Unrestricted by Format" ]
+	},
+	"stresstestextraction": {
+		"name": "Stress Test of Extraction API",
+		"scale": "up to 100 users/sec",
+		"description" : "Over the course of 30 minutes this simulation ramps up from 10 users per second to 100 users per second. Each perform extractions for a sample file. The same files are used for each simulation run.",
+		"formats" : [ "Unrestricted by Format" ]
 	}
 }

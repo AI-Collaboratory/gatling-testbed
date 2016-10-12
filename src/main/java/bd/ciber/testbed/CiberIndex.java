@@ -36,7 +36,7 @@ public class CiberIndex {
 	 * Iterates through a sample of the CI-BER data. Will return a consistent
 	 * sample whenever a same randomSeed is supplied.
 	 * then 
-	 * @param howMany limit the number of results
+	 * @param howMany limit the number of results or 0 for no limit
 	 * @param randomSeed an offset for sampling at random, or null for new random sample.
 	 * @param minSize minimum size of files in bytes
 	 * @param maxSize maximum size of files in bytes
@@ -68,7 +68,9 @@ public class CiberIndex {
 		LOG.info("QUERY: {} ", query.toString());
 		DBCursor cursor = coll.find(query, fullpathSpec);
 		cursor = cursor.sort(new BasicDBObject(CiberIndexKeys.F_RANDOM.key(), 1));
-		cursor = cursor.limit(howMany);
+		if(howMany > 0) {
+			cursor = cursor.limit(howMany);
+		}
 		Iterator<String> result = new MongoPathIterator(cursor);
 		return result;
 	}
