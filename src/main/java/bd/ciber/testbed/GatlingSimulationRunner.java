@@ -19,7 +19,7 @@ import scala.Option;
 public class GatlingSimulationRunner {
 	private static final Logger LOG = LoggerFactory
 			.getLogger(GatlingSimulationRunner.class);
-	
+
 	private String currentlyRunningSimulation = "None";
 
 	@Value("${dataFolder}")
@@ -30,10 +30,10 @@ public class GatlingSimulationRunner {
 
 	@Value("${bodiesFolder}")
 	private String bodiesFolder;
-	
+
 	@Resource(name = "simulationProperties")
 	private Properties simulationProperties;
-	
+
 	List<String> simulations;
 
 	public List<String> getSimulations() {
@@ -43,7 +43,7 @@ public class GatlingSimulationRunner {
 	public void setSimulations(List<String> simulations) {
 		this.simulations = simulations;
 	}
-	
+
 	public String getCurrentRunningSimulation() {
 		return this.currentlyRunningSimulation;
 	}
@@ -55,7 +55,7 @@ public class GatlingSimulationRunner {
 		LOG.info("SIMULATION START: {}", simulation);
 		this.currentlyRunningSimulation = simulation;
 		// Put simulation properties into System properties
-		for (Enumeration<Object> keys = simulationProperties.keys(); 
+		for (Enumeration<Object> keys = simulationProperties.keys();
 				keys.hasMoreElements();) {
 			String key = (String) keys.nextElement();
 			System.setProperty(key, simulationProperties.getProperty(key));
@@ -101,6 +101,24 @@ public class GatlingSimulationRunner {
 			} catch (ClassNotFoundException e) {
 				LOG.error("Cannot find simulation class", e);
 			}
+		}
+	}
+
+	public void runStressTestExtraction() throws InterruptedException {
+		try {
+			run("bd.ciber.gatling.StressTestExtraction");
+			mongoResultsCollector.collectLatest(1);
+		} catch (ClassNotFoundException e) {
+			LOG.error("Cannot find simulation class", e);
+		}
+	}
+
+	public void runStressTestConversion() throws InterruptedException {
+		try {
+			run("bd.ciber.gatling.StressTestConversion");
+			mongoResultsCollector.collectLatest(1);
+		} catch (ClassNotFoundException e) {
+			LOG.error("Cannot find simulation class", e);
 		}
 	}
 }

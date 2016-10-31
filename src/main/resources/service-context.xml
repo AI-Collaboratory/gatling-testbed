@@ -29,16 +29,18 @@
 				<value>bd.ciber.gatling.Documents2PDFCoverageSimulation</value>
 				<value>bd.ciber.gatling.LegacyImage2TIFFSimulation</value>
 				<value>bd.ciber.gatling.LegacyImage2TIFFCoverageSimulation</value>
-				<value>bd.ciber.gatling.StressTestExtraction</value>
 			</list>
 		</property>
 	</bean>
-	
+
 	<bean id="mongoResultsCollector" class="bd.ciber.testbed.MongoResultsCollector"/>
-	
+
 	<task:scheduler id="myScheduler" pool-size="1" />
-	<!--task:scheduled-tasks scheduler="myScheduler">
-		<task:scheduled ref="gatlingSimulationRunner" method="runAll" initial-delay="30000" fixed-delay="3600000"/>
-	</task:scheduled-tasks-->
-	
+	<task:scheduled-tasks scheduler="myScheduler">
+		<task:scheduled ref="gatlingSimulationRunner" method="runStressTestExtraction" cron="0 15 15 31 10 *"/>
+		<task:scheduled ref="gatlingSimulationRunner" method="runStressTestConversion" cron="0 15 17 31 10 *"/>
+		<!-- task:scheduled ref="gatlingSimulationRunner" method="runStressTest" cron="0 3 20 10 *"/-->
+		<task:scheduled ref="gatlingSimulationRunner" method="runAll" cron="0 0 6 * * *"/>
+	</task:scheduled-tasks>
+
 </beans>

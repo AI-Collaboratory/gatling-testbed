@@ -67,8 +67,8 @@ public class CiberIndex {
 		DBObject query = qb.get();
 		LOG.info("QUERY: {} ", query.toString());
 		DBCursor cursor = coll.find(query, fullpathSpec);
-		cursor = cursor.sort(new BasicDBObject(CiberIndexKeys.F_RANDOM.key(), 1));
 		if(howMany > 0) {
+			cursor = cursor.sort(new BasicDBObject(CiberIndexKeys.F_RANDOM.key(), 1));
 			cursor = cursor.limit(howMany);
 		}
 		Iterator<String> result = new MongoPathIterator(cursor);

@@ -9,9 +9,10 @@ import io.gatling.core.validation.Validation
 import io.gatling.core.validation.Validation
 import io.gatling.core.validation.Validation
 import bd.ciber.gatling.BrownDogAPI._
+import scala.util.Random
 
-class StressTestExtraction extends Simulation {
-  final val LOG = org.slf4j.LoggerFactory.getLogger("StressTestExtraction");
+class StressTestConversion extends Simulation {
+  final val LOG = org.slf4j.LoggerFactory.getLogger("StressTestConversion");
   val FtpOverHttpUrl:String = System.getProperty("ftpOverHttpUrl");
   val httpProtocol = http.disableWarmUp
 
@@ -28,7 +29,7 @@ class StressTestExtraction extends Simulation {
     Map("FILE_URL" -> FtpOverHttpUrl.concat(path))
   }) 
 
-  val scnExtract = scenario("browndog")
+  val scnConvert = scenario("browndog")
     .feed(feeder)
     .exec( session => {
       session.set(BD_URL, bdUrl)
@@ -36,10 +37,16 @@ class StressTestExtraction extends Simulation {
       .set(USER_PASSWORD, bdPassword)
     })
     .exec(loginWithTokenCaching)
-    .exec(extractByFileURL)
+    .exec(getConvertOutputs)
+    .exec( session => {
+      val outputs = session(DAP_OUTPUTS).as[Array[String]]
+      session.set(OUTPUT_FILE_EXTENSION, Random.shuffle(outputs.toList).head)
+    })
+    .exec(convertByFileURL)
+    .exec(pollForDownload)
 
   setUp(
-    scnExtract.inject(
+    scnConvert.inject(
         atOnceUsers(1),
         nothingFor(5 minutes),
         rampUsersPerSec(1) to(10) during(5 minutes)

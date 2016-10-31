@@ -32,7 +32,7 @@
 	"stresstestextraction": {
 		"name": "Stress Test of Extraction API",
 		"scale": "up to 100 users/sec",
-		"description" : "Over the course of 30 minutes this simulation ramps up from 10 users per second to 100 users per second. Each perform extractions for a sample file. The same files are used for each simulation run.",
+		"description" : "Over the course of 60 minutes this simulation ramps up from 10 users per second to 100 users per second. Each perform extractions for a sample file. The same files are used for each simulation run.",
 		"formats" : [ "Unrestricted by Format" ]
 	}
 }

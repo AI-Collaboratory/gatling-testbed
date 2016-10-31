@@ -57,7 +57,7 @@ class Documents2PDFCoverageSimulation extends Simulation {
 
   val convertToPDF = scenario("convertToPDF")
     .exec(
-      http("postFile")
+      http("getFile")
         .post("convert/pdf/")
         .headers(headers_text)
         .formUpload("file", "/srv/xfer/${path}")
