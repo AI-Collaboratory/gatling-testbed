@@ -43,7 +43,7 @@ public class CiberIndex {
 	 * @param extension the desired file extensions, if any (case insensitive)
 	 * @return a Gatling-style iterator of mapped "fullpath"
 	 */
-	public Iterator<String> get(int howMany, Float randomSeed, Integer minSize, Integer maxSize, String... extension) {
+	public Iterator<String> get(int howMany, Float randomSeed, Integer minSize, Integer maxSize, Boolean includeExtensions, String... extension) {
 		DB ciberCatDB = mongoClient.getDB(CiberIndexKeys.DB.key());
 		DBCollection coll = ciberCatDB.getCollection(CiberIndexKeys.FILES_COLL.key());
 		
@@ -52,7 +52,11 @@ public class CiberIndex {
 			for(int i = 0; i < extension.length; i++) {
 				extension[i] = extension[i].toUpperCase();
 			}
-			qb.and(CiberIndexKeys.F_EXTENSION.key()).in(extension);
+			if(includeExtensions) {
+				qb.and(CiberIndexKeys.F_EXTENSION.key()).in(extension);
+			} else {
+				qb.and(CiberIndexKeys.F_EXTENSION.key()).notIn(extension);
+			}
 		}
 		if(minSize != null) {
 			qb.and(CiberIndexKeys.F_SIZE.key()).greaterThanEquals(minSize);

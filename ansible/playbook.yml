@@ -1,15 +1,15 @@
 ---
 - hosts: ciber-gatling
-  sudo: True
+  become: True
   vars:
     data_folder: /opt/testbed
   tasks:
-    - name: Install packages
-      apt: name={{ item }} state=present update_cache=yes cache_valid_time=2592000
-      with_items:
-        - openjdk-7-jdk
-        - mongodb
-        - tomcat7
+#    - name: Install packages
+#      apt: name={{ item }} state=present update_cache=yes cache_valid_time=2592000
+#      with_items:
+#        - openjdk-7-jdk
+#        - mongodb
+#        - tomcat7
 
     - name: Configure mongodb
       lineinfile: dest=/etc/mongodb.conf regexp=^dbpath= line=dbpath={{ data_folder }}/mongodb
@@ -35,13 +35,13 @@
 
     - name: Delete older ROOT dir
       file: path=/var/lib/tomcat7/webapps/ROOT state=absent
-      sudo: yes
-      sudo_user: tomcat7
+      become: yes
+      become_user: tomcat7
 
     - name: Deploy WAR
       copy: src=../target/testbed.war dest=/var/lib/tomcat7/webapps/ROOT.war owner=tomcat7 group=tomcat7
-      sudo: yes
-      sudo_user: tomcat7
+      become: yes
+      become_user: tomcat7
 
     - name: Start services
       service: name={{ item }} enabled=yes state=started

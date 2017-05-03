@@ -24,6 +24,7 @@ object BrownDogAPI {
   val OUTPUT_FILE_EXTENSION = "OUTPUT_FILE_EXTENSION"
   val OUTPUT_FILE_URL = "OUTPUT_FILE_URL"
   val DAP_OUTPUTS = "DAP_OUTPUTS"
+  val BODY_STRING = "BODY_STRING"
   
   val headers_accept_json = Map("Accept" -> "application/json", "Content-type" -> "application/json")  
   val headers_accept_text = Map("Accept" -> "text/plain", "Content-type" -> "text/plain")  
@@ -31,7 +32,7 @@ object BrownDogAPI {
   private val tokenCache = new LookupCache()
   
   val statusTransformOption = (input: Option[String], session: Session) => {
-    val path = session("path").as[String]
+    val path = session(FILE_URL).as[String]
     val extension = path.substring(path.lastIndexOf(".") + 1).toLowerCase()
     input.get match {
       case "Done" => Success(Option("Done"))
@@ -73,12 +74,13 @@ object BrownDogAPI {
   def getConvertOutputs = 
     exec( session => {
       val path = session( FILE_URL ).as[String]
-      val ext = path.substring(path.lastIndexOf('.'))
+      val ext = path.substring(path.lastIndexOf('.')+1)
       session.set( FILE_EXTENSION, ext)
     })
     .exec(http("getDAPOutputs")
         .get("${BD_URL}/dap/inputs/${FILE_EXTENSION}")
         .headers(headers_accept_text)
+        .header("Authorization", { session => tokenCache.get(session(USER_NAME).as[String]) } )
         .check(bodyString.transform( string => string.trim().split('\n') ).saveAs(DAP_OUTPUTS))
     ).exitHereIfFailed
     
@@ -92,18 +94,21 @@ object BrownDogAPI {
       http("getConvertByUrl")
         .get("${BD_URL}/dap/convert/${OUTPUT_FILE_EXTENSION}/${FILE_URL_ENCODED}")
         .headers(headers_accept_text)
+        .header("Authorization", { session => tokenCache.get(session(USER_NAME).as[String]) } )
         .check(bodyString.transform( string => string.trim() ).saveAs(OUTPUT_FILE_URL)))
   
   def pollForDownload = 
     asLongAs( session => { 
-        session("status").as[String] != "done" &&
-          session("counter").as[Int] < 10 }, "counter", false, AsLongAsLoopType)
+        session("counter").as[Int] < 10 && 
+        (!session.contains("status") || session("status").as[String] != "done") },
+        "counter", false, AsLongAsLoopType)
           {
             exitBlockOnFail(
               pause(10)
               .exec(
                 http("download")
                   .get("${OUTPUT_FILE_URL}")
+                  .header("Authorization", { session => tokenCache.get(session(USER_NAME).as[String]) } )
                   .check(status.is(200)))
               .exec( session => {
                 session.set("status", "done")
@@ -115,10 +120,13 @@ object BrownDogAPI {
     exec(http("postUrl")
         .post("${BD_URL}/dts/api/extractions/upload_url")
         .headers(headers_accept_json)
+        .header("Authorization", { session => tokenCache.get(session(USER_NAME).as[String]) } )
         .body(StringBody("{ \"fileurl\": \"${FILE_URL}\" }"))
+        .check(status.is(200))
         .check(jsonPath("$.id").ofType[String].saveAs(FILE_ID))
-    ).exitHereIfFailed
-    .exec( session => {      
+    )
+    .exitHereIfFailed
+    .exec( session => {
       val resp = session(FILE_ID).as[String]
       LOG.info(resp+" has path: "+ session(FILE_URL).as[String])
       session
@@ -128,6 +136,7 @@ object BrownDogAPI {
       exec(http("pollUrl")
         .get("${BD_URL}/dts/api/extractions/${FILE_ID}/status")
         .headers(headers_accept_json)
+        .header("Authorization", { session => tokenCache.get(session(USER_NAME).as[String]) } )
         .check(jsonPath("$.Status").ofType[String].transformOption(statusTransformOption)
             .saveAs(FILE_STATUS))
       ).exitHereIfFailed

@@ -22,7 +22,7 @@ class LegacyImage2TIFFSimulation extends Simulation {
   val ciberIndex = new bd.ciber.testbed.CiberIndex();
   ciberIndex.setMongoClient(new com.mongodb.MongoClient());
    
-  val samples = ciberIndex.get(1000, randomSeed, 100, 20e6.toInt, "TARGA", "PICT", "WMF", "BMP", "PSD", "TGA", "PCT", "EPS", "MACPAINT", "MSP", "PCX")
+  val samples = ciberIndex.get(1000, randomSeed, 100, 20e6.toInt, true, "TARGA", "PICT", "WMF", "BMP", "PSD", "TGA", "PCT", "EPS", "MACPAINT", "MSP", "PCX")
   val feeder = Iterator.continually(Map("path" -> ( samples.next )))
   
   val includesMyExtension = (conversionInputs: Option[String], session: Session) => {

@@ -9,6 +9,7 @@ import io.gatling.core.validation.Validation
 import io.gatling.core.validation.Validation
 import io.gatling.core.validation.Validation
 import bd.ciber.gatling.BrownDogAPI._
+import java.net.URLEncoder
 
 class StressTestExtraction extends Simulation {
   final val LOG = org.slf4j.LoggerFactory.getLogger("StressTestExtraction");
@@ -19,14 +20,14 @@ class StressTestExtraction extends Simulation {
   val bdUsername = System.getProperty("bdUsername");
   val bdPassword = System.getProperty("bdPassword");
   
-  val randomSeed = new java.lang.Float(.000001)
+  val randomSeed = Math.random.toFloat
   val ciberIndex = new bd.ciber.testbed.CiberIndex
   ciberIndex.setMongoClient(new com.mongodb.MongoClient())
-  val samples = ciberIndex.get(0, randomSeed, 100, 20e6.toInt)
+  val samples = ciberIndex.get(0, randomSeed, 100, 20e6.toInt, false, "SHX", "SHP")
   val feeder = Iterator.continually({
     var path:String = samples.next
-    Map("FILE_URL" -> FtpOverHttpUrl.concat(path))
-  }) 
+    Map("FILE_URL" -> FtpOverHttpUrl.concat("/"+URLEncoder.encode(path, "utf-8")))
+  })
 
   val scnExtract = scenario("browndog")
     .feed(feeder)
@@ -41,8 +42,8 @@ class StressTestExtraction extends Simulation {
   setUp(
     scnExtract.inject(
         atOnceUsers(1),
-        nothingFor(5 minutes),
-        rampUsersPerSec(1) to(10) during(5 minutes)
-        // rampUsersPerSec(10) to(100) during(60 minutes)
+        nothingFor(1 minutes),
+        // rampUsersPerSec(1) to(10) during(5 minutes)
+        rampUsersPerSec(10) to(100) during(60 minutes)
     )).protocols(httpProtocol)
 }

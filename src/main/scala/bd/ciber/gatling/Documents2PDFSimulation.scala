@@ -22,7 +22,7 @@ class Documents2PDFSimulation extends Simulation {
   val randomSeed = new java.lang.Float(.39855721)
   val ciberIndex = new bd.ciber.testbed.CiberIndex();
   ciberIndex.setMongoClient(new com.mongodb.MongoClient());
-  val samples = ciberIndex.get(1000, randomSeed, 100, 20e6.toInt, "DOC", "DOCX", "ODF", "RTF", "WPD", "WP", "LWP", "WSD");
+  val samples = ciberIndex.get(1000, randomSeed, 100, 20e6.toInt, true, "DOC", "DOCX", "ODF", "RTF", "WPD", "WP", "LWP", "WSD");
   val feeder = Iterator.continually(Map("path" -> (samples.next)))
         
       
