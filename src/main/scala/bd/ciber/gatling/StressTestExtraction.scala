@@ -17,10 +17,11 @@ class StressTestExtraction extends Simulation {
   val httpProtocol = http.disableWarmUp
 
   val bdUrl = System.getProperty("bdUrl");
+  val bdAPIKey = System.getProperty("bdAPIKey");
   val bdUsername = System.getProperty("bdUsername");
   val bdPassword = System.getProperty("bdPassword");
   
-  val randomSeed = Math.random.toFloat
+  val randomSeed = Math.random.toFloat / 2
   val ciberIndex = new bd.ciber.testbed.CiberIndex
   ciberIndex.setMongoClient(new com.mongodb.MongoClient())
   val samples = ciberIndex.get(0, randomSeed, 100, 20e6.toInt, false, "SHX", "SHP")
@@ -33,6 +34,7 @@ class StressTestExtraction extends Simulation {
     .feed(feeder)
     .exec( session => {
       session.set(BD_URL, bdUrl)
+      .set(BD_API_KEY, bdAPIKey)
       .set(USER_NAME, bdUsername)
       .set(USER_PASSWORD, bdPassword)
     })
@@ -40,10 +42,10 @@ class StressTestExtraction extends Simulation {
     .exec(extractByFileURL)
 
   setUp(
+    scnClearTokenCache.inject(atOnceUsers(1),nothingFor(1 seconds)),
     scnExtract.inject(
         atOnceUsers(1),
         nothingFor(1 minutes),
-        // rampUsersPerSec(1) to(10) during(5 minutes)
-        rampUsersPerSec(10) to(100) during(60 minutes)
+        rampUsersPerSec(1) to(50) during(30 minutes)
     )).protocols(httpProtocol)
 }

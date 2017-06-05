@@ -18,10 +18,11 @@ class StressTestConversion extends Simulation {
   val httpProtocol = http.disableWarmUp
 
   val bdUrl = System.getProperty("bdUrl");
+  val bdAPIKey = System.getProperty("bdAPIKey");
   val bdUsername = System.getProperty("bdUsername");
   val bdPassword = System.getProperty("bdPassword");
   
-  val randomSeed = Math.random.toFloat
+  val randomSeed = Math.random.toFloat / 2
   val ciberIndex = new bd.ciber.testbed.CiberIndex
   ciberIndex.setMongoClient(new com.mongodb.MongoClient())
   val samples = ciberIndex.get(0, randomSeed, 100, 20e6.toInt, false, "SHX", "SHP")
@@ -34,25 +35,28 @@ class StressTestConversion extends Simulation {
     .feed(feeder)
     .exec( session => {
       session.set(BD_URL, bdUrl)
+      .set(BD_API_KEY, bdAPIKey)
       .set(USER_NAME, bdUsername)
       .set(USER_PASSWORD, bdPassword)
     })
     .exec(loginWithTokenCaching)
     .exec(getConvertOutputs)
+    // Pick one of the conversion formats offered
     .exec( session => {
       val outputs = session(DAP_OUTPUTS).as[Array[String]]
       session.set(OUTPUT_FILE_EXTENSION, Random.shuffle(outputs.toList).head)
     })
+    // Proceed only if a conversion format is available. 
     .doIf( session => { session.contains(OUTPUT_FILE_EXTENSION) && session(OUTPUT_FILE_EXTENSION).as[String].trim().length() > 0 })(
-      exec(convertByFileURL)
-      .exec(pollForDownload)
-    )
+      exec(convertByFileURL))
+    // Proceed only if a URL was returned (not a quota reached message)
+    .doIf( session => { session.contains(OUTPUT_FILE_URL) && session(OUTPUT_FILE_URL).as[String].startsWith("http") })(exec(pollForDownload))
 
   setUp(
+    scnClearTokenCache.inject(atOnceUsers(1),nothingFor(1 seconds)),
     scnConvert.inject(
         atOnceUsers(1),
-        nothingFor(1 minutes),
-        // rampUsersPerSec(1) to(10) during(5 minutes)
-        rampUsersPerSec(10) to(100) during(60 minutes)
+        nothingFor(30 seconds),
+        rampUsersPerSec(1) to(50) during(30 minutes)
     )).protocols(httpProtocol)
 }

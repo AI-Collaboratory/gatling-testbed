@@ -2,9 +2,7 @@ package bd.ciber.testbed;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +13,8 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
+import com.mongodb.MongoException.CursorNotFound;
 import com.mongodb.QueryBuilder;
 
 public class CiberIndex {
@@ -22,8 +22,6 @@ public class CiberIndex {
 
 	MongoClient mongoClient;
 	
-	BasicDBObject fullpathSpec = new BasicDBObject(CiberIndexKeys.F_FULLPATH.key(), 1);
-
 	public MongoClient getMongoClient() {
 		return mongoClient;
 	}
@@ -44,9 +42,6 @@ public class CiberIndex {
 	 * @return a Gatling-style iterator of mapped "fullpath"
 	 */
 	public Iterator<String> get(int howMany, Float randomSeed, Integer minSize, Integer maxSize, Boolean includeExtensions, String... extension) {
-		DB ciberCatDB = mongoClient.getDB(CiberIndexKeys.DB.key());
-		DBCollection coll = ciberCatDB.getCollection(CiberIndexKeys.FILES_COLL.key());
-		
 		QueryBuilder qb = QueryBuilder.start();
 		if(extension != null && extension.length > 0) {
 			for(int i = 0; i < extension.length; i++) {
@@ -69,31 +64,58 @@ public class CiberIndex {
 		}
 		qb.and(CiberIndexKeys.F_RANDOM.key()).greaterThan(randomSeed.floatValue());
 		DBObject query = qb.get();
-		LOG.info("QUERY: {} ", query.toString());
-		DBCursor cursor = coll.find(query, fullpathSpec);
-		if(howMany > 0) {
-			cursor = cursor.sort(new BasicDBObject(CiberIndexKeys.F_RANDOM.key(), 1));
-			cursor = cursor.limit(howMany);
-		}
-		Iterator<String> result = new MongoPathIterator(cursor);
+		Iterator<String> result = new MongoPathIterator(query, howMany, mongoClient);
 		return result;
 	}
 	
 	public static class MongoPathIterator implements Iterator<String>, Closeable {
 		DBCursor cursor;
+		private int howMany;
+		private DBObject query;
+		private MongoClient client;
+		BasicDBObject fullpathSpec = new BasicDBObject(CiberIndexKeys.F_FULLPATH.key(), 1);
 		
-		public MongoPathIterator(DBCursor cursor) {
-			this.cursor = cursor;
+		public MongoPathIterator(DBObject query, int howMany, MongoClient client) {
+			this.client = client;
+			this.query = query;
+			this.howMany = howMany;
+			LOG.info("Iterator created with QUERY: {} ", query.toString());
+			this.cursor = null;
+			renewCursor();
+		}
+		
+		private void renewCursor() {
+			DB ciberCatDB = client.getDB(CiberIndexKeys.DB.key());
+			DBCollection coll = ciberCatDB.getCollection(CiberIndexKeys.FILES_COLL.key());
+			cursor = coll.find(query, fullpathSpec);
+			if(howMany > 0) {
+				cursor = cursor.sort(new BasicDBObject(CiberIndexKeys.F_RANDOM.key(), 1));
+				cursor = cursor.limit(howMany);
+			}
 		}
 		
 		@Override
 		public boolean hasNext() {
-			return cursor.hasNext();
+			if(howMany > 0) {
+				return cursor.hasNext();
+			} else {
+				return true;
+			}
 		}
 
 		@Override
 		public String next() {
-			DBObject obj = cursor.next();
+			DBObject obj = null;
+			try {
+				obj = cursor.next();
+			} catch(MongoException e) {
+				if(howMany > 0) {
+					throw e;
+				} else {
+					renewCursor();
+					obj = cursor.next();
+				}
+			}
 			String fullpath = (String)obj.get(CiberIndexKeys.F_FULLPATH.key());
 			return fullpath;
 		}

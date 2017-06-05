@@ -24,7 +24,7 @@
 	<bean id="gatlingSimulationRunner" class="bd.ciber.testbed.GatlingSimulationRunner">
 		<property name="simulations">
 			<list>
-				<value>bd.ciber.gatling.ExtractCollectionSimulation</value>
+				<!-- <value>bd.ciber.gatling.ExtractCollectionSimulation</value> -->
 				<value>bd.ciber.gatling.Documents2PDFSimulation</value>
 				<value>bd.ciber.gatling.Documents2PDFCoverageSimulation</value>
 				<value>bd.ciber.gatling.LegacyImage2TIFFSimulation</value>
@@ -38,10 +38,10 @@
 	<task:scheduler id="myScheduler" pool-size="1" />
 	<task:scheduled-tasks scheduler="myScheduler">
 	<!-- (0-59)  (0-59)  (0-23)     (1-31)    (1-12 or Jan-Dec)  (0-6 or Sun-Sat) -->
-		<task:scheduled ref="gatlingSimulationRunner" method="runStressTestExtraction" cron="0 0 3 * * 3"/>
-		<task:scheduled ref="gatlingSimulationRunner" method="runStressTestConversion" cron="0 0 3 * * 4"/>
+		<task:scheduled ref="gatlingSimulationRunner" method="runStressTestExtraction" cron="0 0 3,16 * * 0,2,4,6"/>
+		<task:scheduled ref="gatlingSimulationRunner" method="runStressTestConversion" cron="0 45 3,12 * * 1,3,5"/>
 		<!-- task:scheduled ref="gatlingSimulationRunner" method="runStressTest" cron="0 3 20 10 *"/-->
-		<task:scheduled ref="gatlingSimulationRunner" method="runAll" cron="0 0 6 * * *"/>
+		<task:scheduled ref="gatlingSimulationRunner" method="runAll" cron="0 0 7 * * *"/>
 	</task:scheduled-tasks>
 
 </beans>

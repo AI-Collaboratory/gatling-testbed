@@ -20,6 +20,11 @@ class LookupCache {
         throw new Exception( "You can't put more than one value into the cache! " + key )
     else
       throw new Exception( "You have not locked '" + key + "'" )
+  
+  // This is not thread safe. Expecting this call only before each test.
+  def clear() =
+    locked.clear()
+    cache.clear()
 
   // any thread can call get - will block until a non-null value is stored in the cache
   // WARNING: if the thread that is holding the lock never puts a value, this thread will block forever
