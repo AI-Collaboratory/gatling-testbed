@@ -53,7 +53,7 @@ public class SimulationLogParser {
 	// testAlloyCrawlsToData \t 4560041668039034658-0 \t REQUEST \t request_container \t 1422461824410 \t 1422461824747 \t 1422461825163 \t 1422461825163 \t KO \t error string
 	
 	@SuppressWarnings("unchecked")
-	public static Map<String, Object> parse(File simLogFile) throws IOException {
+	public static Map<String, Object> parse(File simLogFile, boolean statsOnly) throws IOException {
 		Map<String, Long> metrics = new HashMap<String, Long>();
 		List<Map<String, Object>> KOs = new ArrayList<Map<String, Object>>();
 		List<String> lines = (List<String>)FileUtils.readLines(simLogFile);
@@ -72,7 +72,7 @@ public class SimulationLogParser {
 				if("REQUEST".equals(values.get(IDX_TASK))) {
 					if("KO".equals(values.get(IDX_REQUEST_STATUS))) {
 						String reqName = values.get(IDX_REQUEST_NAME);
-						if(ignoredRequests.contains(reqName)) continue;
+						if(statsOnly || ignoredRequests.contains(reqName)) continue;
 						Map<String, Object> error = new HashMap<String, Object>();
 						KOs.add(error);
 						error.put(ERROR_MESSAGE, values.get(IDX_REQUEST_ERROR));

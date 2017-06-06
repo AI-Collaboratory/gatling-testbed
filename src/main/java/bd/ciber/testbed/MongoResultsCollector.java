@@ -124,9 +124,10 @@ public class MongoResultsCollector {
 			statsObject.put(GATLING_RESULTS_FOLDER, resFolder.getName());
 			
 			// add errors (KOs) from simulation.log
+			boolean statsOnly = simName.toLowerCase().startsWith("stress");
 			File simulationLog = new File(resFolder, "simulation.log");
 			try {
-				Map<String, Object> parsedData = SimulationLogParser.parse(simulationLog);
+				Map<String, Object> parsedData = SimulationLogParser.parse(simulationLog, statsOnly);
 				statsObject.putAll(parsedData);
 			} catch(IOException e) {
 				LOG.error("Unexpected IO Errors reading simulation log", e);

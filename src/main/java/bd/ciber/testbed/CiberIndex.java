@@ -107,7 +107,11 @@ public class CiberIndex {
 		public String next() {
 			DBObject obj = null;
 			try {
-				obj = cursor.next();
+				String name = null;
+				do {
+					obj = cursor.next();
+					name = (String)obj.get(CiberIndexKeys.F_NAME.key());
+				} while(name.length() > 100);
 			} catch(MongoException e) {
 				if(howMany > 0) {
 					throw e;
