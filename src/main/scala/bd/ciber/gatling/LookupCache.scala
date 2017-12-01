@@ -6,13 +6,13 @@ import scala.collection.JavaConverters._
 
 class LookupCache {
   val cache  : concurrent.Map[String,String] = new ConcurrentHashMap() asScala
-  val locked : concurrent.Map[String,String]   = new ConcurrentHashMap() asScala
+  val locked : concurrent.Map[String,Long]   = new ConcurrentHashMap() asScala
 
   // first thread to call lock(key) returns true, all subsequent ones will return false
-  def lock ( key: String, who: String ) : Boolean = locked.putIfAbsent(key, who ) == None
+  def lock ( key: String, who: Long ) : Boolean = locked.putIfAbsent(key, who ) == None
 
   // only the thread that first called lock(key) can call put, and then only once
-  def put( key: String, value: String, who: String ) =
+  def put( key: String, value: String, who: Long ) =
     if ( locked.get( key ).get == who )
       if ( cache.get( key ) == None )
         cache.put( key, value )

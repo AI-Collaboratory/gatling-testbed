@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>bd.ciber</groupId>
 	<artifactId>gatling-testbed</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>2.0-SNAPSHOT</version>
 
 	<repositories>
 		<repository>
@@ -32,11 +32,11 @@
 
 	<properties>
 		<spring.version>4.1.3.RELEASE</spring.version>
-		<scala.version>2.11.3</scala.version>
+		<scala.version>2.12.3</scala.version>
 		<encoding>UTF-8</encoding>
 
-		<gatling.version>2.1.7</gatling.version>
-		<gatling-highcharts.version>2.1.7</gatling-highcharts.version>
+		<gatling.version>2.3.0</gatling.version>
+		<gatling-highcharts.version>2.3.0</gatling-highcharts.version>
 
 		<scala-maven-plugin.version>3.1.6</scala-maven-plugin.version>
 		<scala.version.old>2.10.4</scala.version.old>
@@ -77,28 +77,13 @@
 			</dependency>
 			<dependency>
 				<groupId>org.springframework</groupId>
-				<artifactId>spring-webmvc</artifactId>
+				<artifactId>spring-beans</artifactId>
 				<version>${spring.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-test</artifactId>
 				<version>${spring.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-core</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-annotations</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-databind</artifactId>
-				<version>${jackson.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -107,6 +92,7 @@
 		<dependency>
 			<groupId>io.gatling.highcharts</groupId>
 			<artifactId>gatling-charts-highcharts</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.gatling</groupId>
@@ -117,40 +103,11 @@
 					<groupId>org.slf4j</groupId>
 				</exclusion>
 			</exclusions>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.gatling</groupId>
 			<artifactId>gatling-recorder</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.scala-lang</groupId>
-			<artifactId>scala-library</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>1.1.2</version>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<version>3.0.1</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -158,26 +115,6 @@
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-			<type>jar</type>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-annotations</artifactId>
-			<type>jar</type>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<type>jar</type>
-		</dependency>
-		<dependency>
-			<groupId>org.mongodb</groupId>
-			<artifactId>mongo-java-driver</artifactId>
-			<version>2.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -191,20 +128,25 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>de.flapdoodle.embed</groupId>
-			<artifactId>de.flapdoodle.embed.mongo</artifactId>
-			<version>1.47.0</version>
-			<scope>test</scope>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>elasticsearch</artifactId>
+			<version>5.6.3</version>
 		</dependency>
 		<dependency>
-			<groupId>com.github.sps.mustache</groupId>
-			<artifactId>mustache-spring-view</artifactId>
-			<version>1.3</version>
+			<groupId>io.searchbox</groupId>
+			<artifactId>jest</artifactId>
+			<version>5.3.3</version>
 		</dependency>
 		<dependency>
-			<groupId>com.samskivert</groupId>
-			<artifactId>jmustache</artifactId>
-			<version>1.10</version>
+			<groupId>org.scala-lang</groupId>
+			<artifactId>scala-library</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.25</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 
@@ -233,7 +175,7 @@
 						<id>scala-compile-first</id>
 						<phase>process-resources</phase>
 						<goals>
-						    <goal>add-source</goal>
+							<goal>add-source</goal>
 							<goal>compile</goal>
 						</goals>
 					</execution>
@@ -244,22 +186,10 @@
 							<goal>testCompile</goal>
 						</goals>
 					</execution>
-<!-- 					<execution>
-						<goals>
-							<goal>compile</goal>
-							<goal>testCompile</goal>
-						</goals>
-						<configuration>
-							<args>
-								<arg>-target:jvm-1.6</arg>
-								<arg>-deprecation</arg>
-								<arg>-feature</arg>
-								<arg>-unchecked</arg>
-								<arg>-language:implicitConversions</arg>
-								<arg>-language:postfixOps</arg>
-							</args>
-						</configuration>
-					</execution> -->
+					<!-- <execution> <goals> <goal>compile</goal> <goal>testCompile</goal> 
+						</goals> <configuration> <args> <arg>-target:jvm-1.6</arg> <arg>-deprecation</arg> 
+						<arg>-feature</arg> <arg>-unchecked</arg> <arg>-language:implicitConversions</arg> 
+						<arg>-language:postfixOps</arg> </args> </configuration> </execution> -->
 				</executions>
 			</plugin>
 			<plugin>
@@ -267,30 +197,60 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.2</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
-<!-- 				<executions>
-					<execution>
-						<phase>compile</phase>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-					</execution>
-				</executions> -->
+				<!-- <executions> <execution> <phase>compile</phase> <goals> <goal>compile</goal> 
+					</goals> </execution> </executions> -->
 			</plugin>
 			<plugin>
 				<groupId>io.gatling</groupId>
 				<artifactId>gatling-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
-        		<groupId>org.apache.maven.plugins</groupId>
-        		<artifactId>maven-war-plugin</artifactId>
-        		<configuration>
-          			<failOnMissingWebXml>false</failOnMissingWebXml>
-        		</configuration>
-      		</plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<configuration>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>bd.ciber.testbed.RunTestsCommand</mainClass>
+								</transformer>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  					<resource>META-INF/spring.handlers</resource>
+                				</transformer>
+                				<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  					<resource>META-INF/spring.schemas</resource>
+                				</transformer>
+							</transformers>							
+						    <filters>
+						        <filter>
+						            <artifact>*:*</artifact>
+						            <excludes>
+						                <exclude>META-INF/*.SF</exclude>
+						                <exclude>META-INF/*.DSA</exclude>
+						                <exclude>META-INF/*.RSA</exclude>
+						            </excludes>
+						        </filter>
+						    </filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
-	<packaging>war</packaging>
 </project>

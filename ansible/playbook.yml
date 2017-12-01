@@ -1,49 +1,82 @@
 ---
-- hosts: ciber-gatling
-  become: True
-  vars:
-    data_folder: /opt/testbed
+- hosts:  elasticsearch
   tasks:
-#    - name: Install packages
-#      apt: name={{ item }} state=present update_cache=yes cache_valid_time=2592000
-#      with_items:
-#        - openjdk-7-jdk
-#        - mongodb
-#        - tomcat7
+  - debug: msg="Gathers the facts about elasticsearch servers (IP addresses mainly)"
+    tags: logstash
 
-    - name: Configure mongodb
-      lineinfile: dest=/etc/mongodb.conf regexp=^dbpath= line=dbpath={{ data_folder }}/mongodb
+- hosts: gatling
+  become: yes
+  vars:
+    install_folder: /opt
+    elasticsearch_ips: "{{ groups['elasticsearch'] | map('extract', hostvars, ['ansible_eth0', 'ipv4', 'address']) | join(',') }}"
+  tasks:
+    - user:
+        name: gatling
+    - name: Add Java repository
+      apt_repository:
+        repo: ppa:webupd8team/java
+
+    - name: Automatically select the Oracle License
+      shell: echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections
+
+    - name: Install the Java 8 package
+      apt:
+        name: oracle-java8-installer
+        state: present
+        update_cache: yes
+
+    - name: Download and unzip Gatling.io
+      unarchive:
+        src: https://repo1.maven.org/maven2/io/gatling/highcharts/gatling-charts-highcharts-bundle/2.3.0/gatling-charts-highcharts-bundle-2.3.0-bundle.zip
+        remote_src: yes
+        dest: "{{ install_folder }}"
+        mode: 0755
+        owner: gatling
+        creates: "{{ install_folder }}/gatling-charts-highcharts-bundle-2.3.0/bin/gatling.sh"
 
     - name: Configure simulation properties
-      template: src=templates/simulation.properties.j2 dest=/etc/simulation.properties
+      blockinfile:
+        path: "{{ install_folder }}/gatling-charts-highcharts-bundle-2.3.0/bin/gatling.sh"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK FOR CLEANUP AND CUSTOM JAVA_OPTS"
+        insertbefore: BOF
+        block: |
+          rm -f /tmp/output.log
+          JAVA_OPTS="${JAVA_OPTS} -DbdUrl={{ bd_url }}"
+          JAVA_OPTS="${JAVA_OPTS} -DlocalPathPrefix=/srv/ciber"
+          JAVA_OPTS="${JAVA_OPTS} -DbdAPIKey={{ bd_api_key }}"
+          JAVA_OPTS="${JAVA_OPTS} -DbdUsername={{ bd_username }}"
+          JAVA_OPTS="${JAVA_OPTS} -DbdPassword={{ bd_password }}"
+          JAVA_OPTS="${JAVA_OPTS} -DelasticsearchURL={{ elasticsearch_url }}"
+          JAVA_OPTS="${JAVA_OPTS} -DcdmiProxyUrl={{ cdmi_proxy_url }}"
+          JAVA_OPTS="${JAVA_OPTS} -DftpOverHttpUrl={{ ftp_over_http_url }}"
+          JAVA_OPTS="${JAVA_OPTS} -DdtsTestPath1={{ dts_test_path1 }}"
 
-    - name: Set Tomcat JAVA_OPTS
-      lineinfile: dest=/etc/default/tomcat7 regexp=^JAVA_OPTS= line='JAVA_OPTS="-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Dsimulation.properties=file:/etc/simulation.properties -Xmx1g -XX:+UseConcMarkSweepGC"'
+    - name: Script the Gatling simulation log consolidation
+      blockinfile:
+        path: "{{ install_folder }}/gatling-charts-highcharts-bundle-2.3.0/bin/gatling.sh"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK FOR LOGSTASH OPERATIONS"
+        insertafter: EOF
+        block: |
+          find {{ install_folder }}/gatling-charts-highcharts-bundle-2.3.0/results/ -type f -name 'simulation.log' -exec cat {} + >> /tmp/output.log
+          rm -r {{ install_folder }}/gatling-charts-highcharts-bundle-2.3.0/results/*
+          cat /tmp/output.log | /usr/share/logstash/bin/logstash -f /etc/logstash/gatling_logstash.conf
 
-    - name: Stop services
-      service: name={{ item }} enabled=yes state=stopped
-      with_items:
-        - tomcat7
+    - name: Deploy JAR
+      copy:
+        src: ../target/testbed.jar
+        dest: "{{ install_folder }}/gatling-charts-highcharts-bundle-2.3.0/lib/testbed.jar"
+        owner: gatling
+      tags: code
 
-    - name: Create data directories
-      file: dest={{ data_folder }} owner=tomcat7 group=tomcat7 state=directory
-    - file: dest={{ data_folder }}/gatling-data owner=tomcat7 group=tomcat7 state=directory
-    - file: dest={{ data_folder }}/gatling-results owner=tomcat7 group=tomcat7 state=directory
-    - file: dest={{ data_folder }}/gatling-bodies owner=tomcat7 group=tomcat7 state=directory
-    - file: dest={{ data_folder }}/mongodb owner=mongodb group=nogroup state=directory
-    - file: dest={{ data_folder }}/sample-files owner=tomcat7 group=tomcat7 state=directory
+    - name: Install Logstash
+      include: logstash.yml
+      tags: logstash
 
-    - name: Delete older ROOT dir
-      file: path=/var/lib/tomcat7/webapps/ROOT state=absent
-      become: yes
-      become_user: tomcat7
-
-    - name: Deploy WAR
-      copy: src=../target/testbed.war dest=/var/lib/tomcat7/webapps/ROOT.war owner=tomcat7 group=tomcat7
-      become: yes
-      become_user: tomcat7
-
-    - name: Start services
-      service: name={{ item }} enabled=yes state=started
-      with_items:
-        - tomcat7
+    - name: Mount CIBER XFER directory
+      apt: name=nfs-common
+    - lineinfile:
+        dest: /etc/fstab
+        line: "192.168.0.4:/export/ciber	/srv/ciber	nfs	_netdev,ro	0	0"
+        insertafter: EOF
+    - file: path=/srv/ciber state=directory
+    - mount: name=/srv/ciber src=192.168.0.4:/export/ciber fstype=nfs state=mounted

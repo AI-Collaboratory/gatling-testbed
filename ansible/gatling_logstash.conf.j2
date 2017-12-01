@@ -1,0 +1,40 @@
+input {
+    stdin {}
+}
+
+filter {
+    if ([message] =~ "\bRUN\b" or [message] =~ "\bSTART\b" or [message] =~ "\bEND\b" or [message] =~ "\bGROUP\b") {
+        drop { }
+    }
+    if [type] == "gatling" {
+        grok {
+            match => { "message" => "%{DATA:scenario_name}\t%{NOTSPACE:user_id}\tREQUEST\t%{DATA:group}\t%{DATA:name}\t%{INT:requestStart:int}\t%{INT:requestEnd:int}\t%{INT:responseStart:int}\t%{INT:responseEnd:int}\t%{WORD:status}" }
+            keep_empty_captures => true
+        }
+        mutate {
+            gsub => [
+                "status", "OK", true,
+                "status", "KO", false
+            ]
+            remove_field => ["host", "path", "type"]
+        }
+        mutate {
+            convert => { "status" => "boolean" }
+        }
+        date {
+            match => [ "requestStart", "UNIX_MS" ]
+        }
+        ruby {
+            code => "event.set('responseDuration', event.get('responseEnd') - event.get('requestStart'))"
+        }
+    }
+}
+
+output {
+     stdout {}
+     elasticsearch {
+        hosts => {{ groups['elasticsearch'] | tojson(indent=None) | replace("\n", "") }}
+        index => "gatling-bd-%{+YYYY.MM.dd}"
+        codec => "json"
+    }
+}

@@ -2,8 +2,8 @@ package bd.ciber.gatling
 
 import scala.concurrent.duration._
 
-import io.gatling.core.validation._
-import io.gatling.core.validation.Validation
+import io.gatling.commons.validation._
+import io.gatling.commons.validation.Validation
 import scala.collection.mutable.Queue
 
 import io.gatling.core.Predef._
