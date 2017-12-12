@@ -39,13 +39,15 @@ object BrownDogAPI {
   
   private def getExtraInfo(extraInfo: ExtraInfo): String = {
     var extras = List( extraInfo.request.getMethod, extraInfo.request.getUrl )
-    if( extraInfo.request.getFile != null ) {
-      extras = extras :+ extraInfo.request.getFile.getPath
-    }
-    if( extraInfo.session.contains(FILE_URL) ) {
+    if( extraInfo.session.contains(FILE_PATH) ) {
+      extras = extras :+ extraInfo.session.get(FILE_PATH).as[String]
+    } else if( extraInfo.session.contains(FILE_URL) ) {
       extras = extras :+ extraInfo.session.get(FILE_URL).as[String]
+    } else {
+      extras = extras :+ ""
     }
-    extras.mkString("\t")
+    extras :+  extraInfo.response.statusCode
+    extras.mkString("|")
   }
   
   val headers_accept_json = Map("Accept" -> "application/json", "Content-type" -> "application/json")  

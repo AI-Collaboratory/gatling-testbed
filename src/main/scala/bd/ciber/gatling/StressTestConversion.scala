@@ -14,11 +14,16 @@ class StressTestConversion extends Simulation {
 
   // Data: Unlimited newly random slice as URLs, files less than 20GB, exclude SHX and SHP
   val cqbiter = new CiberQueryBuilder().makePublicURLs().limit(5000).minBytes(100).maxBytes(20e6.toInt).excludeExtensions("SHX", "SHP").iterator()
-  val feeder = Iterator.continually({ Map("FILE_URL" -> cqbiter.next) })
+  val feeder = Iterator.continually({ Map(FILE_URL -> cqbiter.next) })
   
   val scnConvert = scenario("browndog")
     .feed(feeder)
     .exec(initActions)
+    .exec( session => {
+      val path = session(FILE_URL).as[String]
+      val extension = path.substring(path.lastIndexOf(".") + 1).toLowerCase()
+      session.set(INPUT_FILE_EXTENSION, extension)
+    })
     .exec(getConversionOutputs)
     // Pick one of the conversion formats offered
     .exec( session => {

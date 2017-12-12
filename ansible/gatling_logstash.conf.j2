@@ -3,29 +3,60 @@ input {
 }
 
 filter {
-    if ([message] =~ "\bRUN\b" or [message] =~ "\bSTART\b" or [message] =~ "\bEND\b" or [message] =~ "\bGROUP\b") {
+    if ([message] =~ "^RUN") {
+        grok {
+            match => { "message" => "RUN\t%{DATA:simulationClassName}\t%{DATA:userDefinedSimulationId}\t%{DATA:defaultSimulationId}\t%{INT:start}\t%{DATA:description}\t2.0" }
+            keep_empty_captures => false
+            add_field => { "type" => "RUN" }
+        }
+        mutate {
+            remove_field => ["host", "path"]
+        }
+        date {
+            match => [ "start", "UNIX_MS" ]
+        }
+    }
+    if ([message] =~ "^USER") {
+        grok {
+            match => { "message" => "USER\t%{DATA:scenario}\t%{INT:userId}\t%{WORD:event}\t%{DATA:startDate}\t%{INT:timestamp}" }
+            keep_empty_captures => false
+            add_field => { "type" => "USER" }
+        }
+        mutate {
+            remove_field => ["host", "path"]
+        }
+        date {
+            match => [ "timestamp", "UNIX_MS" ]
+        }
+    }
+    if ([message] =~ "^GROUP") {
         drop { }
     }
-    if [type] == "gatling" {
+    if ([message] =~ "^REQUEST") {
         grok {
-            match => { "message" => "%{DATA:scenario_name}\t%{NOTSPACE:user_id}\tREQUEST\t%{DATA:group}\t%{DATA:name}\t%{INT:requestStart:int}\t%{INT:requestEnd:int}\t%{INT:responseStart:int}\t%{INT:responseEnd:int}\t%{WORD:status}" }
-            keep_empty_captures => true
+            match => { "message" => "REQUEST\t%{DATA:scenario_name}\t%{INT:userID}\t%{DATA:group}\t%{DATA:name}\t%{INT:requestStart}\t%{INT:requestEnd}\t%{WORD:status}\t%{DATA:msg}\t%{DATA:method}|%{DATA:url}|%{DATA:file}|%{INT:statusCode}" }
+            keep_empty_captures => false
+            add_field => { "type" => "REQUEST" }
         }
         mutate {
             gsub => [
                 "status", "OK", true,
                 "status", "KO", false
             ]
-            remove_field => ["host", "path", "type"]
+            remove_field => ["host", "path"]
         }
         mutate {
-            convert => { "status" => "boolean" }
+            convert => {
+              "status" => "boolean"
+              "requestStart" => "integer"
+              "requestEnd" => "integer"
+            }
         }
         date {
             match => [ "requestStart", "UNIX_MS" ]
         }
         ruby {
-            code => "event.set('responseDuration', event.get('responseEnd') - event.get('requestStart'))"
+            code => "event.set('responseDuration', event.get('requestEnd') - event.get('requestStart'))"
         }
     }
 }
@@ -34,7 +65,7 @@ output {
      stdout {}
      elasticsearch {
         hosts => {{ groups['elasticsearch'] | tojson(indent=None) | replace("\n", "") }}
-        index => "gatling-bd-%{+YYYY.MM.dd}"
+        index => "gatling-bd-%{+YYYY.MM.dd.H}"
         codec => "json"
     }
 }

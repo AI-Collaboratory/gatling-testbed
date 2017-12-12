@@ -227,12 +227,12 @@ public class CiberQueryBuilder implements Iterable<String> {
 
 		@Override
 		public String next() {
-			SearchResult.Hit<Map, Void> hit = this.hits.next();
-//			if(hit == null && this.hasNext()) {
-//				hit = this.hits.next();
-//			} else {
-//				throw new NoSuchElementException("no more hits");
-//			}
+			SearchResult.Hit<Map, Void> hit = null;
+			if(this.hasNext()) {
+				hit = this.hits.next();
+			} else {
+				throw new NoSuchElementException("no more hits");
+			}
 			String result = (String)hit.source.get("fullpath");
 			this.count = this.count + 1;
 			this.from = this.from + 1;

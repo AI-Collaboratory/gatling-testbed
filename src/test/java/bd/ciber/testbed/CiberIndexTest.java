@@ -8,10 +8,11 @@ public class CiberIndexTest {
 
 	@Test
 	public void testGet5000() {
-		CiberQueryBuilder cqb = new CiberQueryBuilder().limit(5000).minBytes(100).maxBytes((int) 20e6).excludeExtensions("SHX", "SHP");
+		CiberQueryBuilder cqb = new CiberQueryBuilder().minBytes(100).maxBytes((int) 20e6).excludeExtensions("SHX", "SHP");
 		int count = 0; 
 		for(String path : cqb) {
 			count++;
+			if(count >= 20000) break;
 		}
 		System.out.println("Got "+count);
 	}
