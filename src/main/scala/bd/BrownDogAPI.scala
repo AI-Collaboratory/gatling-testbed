@@ -1,4 +1,4 @@
-package bd.ciber.gatling
+package bd
 
 import io.gatling.commons.validation._
 import io.gatling.core.Predef._
@@ -8,14 +8,14 @@ import java.net.URLEncoder
 import io.gatling.core.action.builder.AsLongAsLoopType
 
 object BrownDogAPI {
-  
+
   // Session keys
   val BD_URL = "BD_URL"
   val BD_API_KEY = "BD_API_KEY"
   val USER_NAME = "USER_NAME"
   val USER_PASSWORD = "USER_PASSWORD"
   val TOKEN_VALUE = "TOKEN_VALUE"
-  
+
   val FILE_PATH = "FILE_PATH"
   val FILE_URL = "FILE_URL"
   val FILE_URL_ENCODED = "FILE_URL_ENCODED"
@@ -28,15 +28,15 @@ object BrownDogAPI {
   val CONVERSION_OUTPUTS = "CONVERSION_OUTPUTS"
   val CONVERSION_INPUTS = "CONVERSION_INPUTS"
   val BODY_STRING = "BODY_STRING"
-  
+
   val bdUrl = System.getProperty("bdUrl");
   val bdAPIKey = System.getProperty("bdAPIKey");
   val bdUsername = System.getProperty("bdUsername");
   val bdPassword = System.getProperty("bdPassword");
-  
+
   val httpProtocol = http.baseURL(bdUrl)
     .extraInfoExtractor { extraInfo => List(getExtraInfo(extraInfo)) }
-  
+
   private def getExtraInfo(extraInfo: ExtraInfo): String = {
     var extras = List( extraInfo.request.getMethod, extraInfo.request.getUrl )
     if( extraInfo.session.contains(FILE_PATH) ) {
@@ -49,24 +49,24 @@ object BrownDogAPI {
     extras :+  extraInfo.response.statusCode
     extras.mkString("|")
   }
-  
-  val headers_accept_json = Map("Accept" -> "application/json", "Content-type" -> "application/json")  
-  val headers_accept_text = Map("Accept" -> "text/plain", "Content-type" -> "text/plain")  
-  
+
+  val headers_accept_json = Map("Accept" -> "application/json", "Content-type" -> "application/json")
+  val headers_accept_text = Map("Accept" -> "text/plain", "Content-type" -> "text/plain")
+
   private val tokenCache = new LookupCache()
-  
+
   val statusTransformOption = (input: Option[String], session: Session) => {
     val path = session(FILE_URL).as[String]
     val extension = path.substring(path.lastIndexOf(".") + 1).toLowerCase()
     input.get match {
       case "Done" => Success(Option("Done"))
       case "Processing" => Success(Option("Processing"))
-      case "Required Extractor is either busy or is not currently running. Try after some time." => 
+      case "Required Extractor is either busy or is not currently running. Try after some time." =>
         Failure("An extractor was busy or not running for " + extension + " at " + path)
       case x => Failure("The DTS failed to extract for "+ extension + " at " + path + " with status: "+x)
     }
   }
-  
+
   val scnClearTokenCache = scenario("clearCache")
     .exec( session => {
       tokenCache.clear()
@@ -75,11 +75,11 @@ object BrownDogAPI {
         .set(USER_NAME, bdUsername)
         .set(USER_PASSWORD, bdPassword)
     })
-    
+
   def initActions = exec( session => {
       session.set(USER_NAME, bdUsername)
     })
-    
+
   def scnLogin = scenario("login")
     .exec( session => {
       tokenCache.clear()
@@ -102,7 +102,7 @@ object BrownDogAPI {
           .basicAuth("${USER_NAME}", "${USER_PASSWORD}")
           .headers(headers_accept_json)
           .check(jsonPath("$.token").ofType[String].saveAs("TOKEN_VALUE"))
-      ).exitHereIfFailed      
+      ).exitHereIfFailed
       // save the token into the cache for next time
       .exec( session => {
         tokenCache.put(
@@ -115,23 +115,23 @@ object BrownDogAPI {
     }
     // pull the token out of the cache for use in subsequent tests
     .exec( session => session.set( TOKEN_VALUE, tokenCache.get( session(USER_NAME).as[String] ) ) )
-    
-  def getConversionInputs = 
+
+  def getConversionInputs =
     exec(http("getConversionInputs")
         .get("/conversions/inputs/${OUTPUT_FILE_EXTENSION}")
         .headers(headers_accept_text)
         .header("Authorization", { session => tokenCache.get(session(USER_NAME).as[String]) } )
         .check(bodyString.transform( string => string.trim().split('\n') ).saveAs(CONVERSION_INPUTS))
     ).exitHereIfFailed
-    
-  def getConversionOutputs = 
+
+  def getConversionOutputs =
     exec(http("getConversionOutputs")
         .get("/conversions/outputs/${INPUT_FILE_EXTENSION}")
         .headers(headers_accept_text)
         .header("Authorization", { session => tokenCache.get(session(USER_NAME).as[String]) } )
         .check(bodyString.transform( string => string.trim().split('\n') ).saveAs(CONVERSION_OUTPUTS))
     ).exitHereIfFailed
-    
+
   def assertConvertable = scenario("assertConvertable")
     .exec(
       http("getInputsForConversion")
@@ -152,7 +152,7 @@ object BrownDogAPI {
         .headers(headers_accept_text)
         .header("Authorization", { session => tokenCache.get(session(USER_NAME).as[String]) } )
         .check(bodyString.transform( string => string.trim() ).saveAs(OUTPUT_FILE_URL)))
-  
+
   def convertByFilePath = scenario("convertByFilePath")
     .exec(
       http("convertByFilePath")
@@ -161,8 +161,8 @@ object BrownDogAPI {
         .header("Authorization", { session => tokenCache.get(session(USER_NAME).as[String]) } )
         .formUpload("file", "${FILE_PATH}")
         .check(bodyString.transform( string => string.trim() ).saveAs(OUTPUT_FILE_URL)))
-        
-  def pollForDownload = 
+
+  def pollForDownload =
     tryMax(10) {
       pause(30)
       .exec(
@@ -172,8 +172,8 @@ object BrownDogAPI {
           .check(status.is(200))
       )
     }
-        
-  def extractByFileURL = 
+
+  def extractByFileURL =
     exec(http("postUrl")
         .post("/extractions/url")
         .headers(headers_accept_json)
@@ -198,5 +198,5 @@ object BrownDogAPI {
             .saveAs(FILE_STATUS))
       ).exitHereIfFailed
     )
-    
+
 }

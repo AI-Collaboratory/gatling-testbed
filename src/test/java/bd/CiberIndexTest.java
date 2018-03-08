@@ -1,4 +1,4 @@
-package bd.ciber.testbed;
+package ciber;
 
 import java.util.Iterator;
 
@@ -6,17 +6,17 @@ import org.junit.Test;
 
 public class CiberIndexTest {
 
-	@Test
+
 	public void testGet5000() {
 		CiberQueryBuilder cqb = new CiberQueryBuilder().minBytes(100).maxBytes((int) 20e6).excludeExtensions("SHX", "SHP");
-		int count = 0; 
+		int count = 0;
 		for(String path : cqb) {
 			count++;
 			if(count >= 20000) break;
 		}
 		System.out.println("Got "+count);
 	}
-	
+
 	@Test
 	public void testGetPublicURLs() {
 		CiberQueryBuilder cqb = new CiberQueryBuilder().makePublicURLs().limit(100).minBytes(100).maxBytes((int) 20e6).excludeExtensions("SHX", "SHP");
@@ -24,7 +24,7 @@ public class CiberIndexTest {
 			System.out.println(url);
 		}
 	}
-	
+
 	@Test
 	public void testGetUnlimited500() {
 		CiberQueryBuilder cqb = new CiberQueryBuilder().minBytes(100).maxBytes((int) 20e6).excludeExtensions("SHX", "SHP");
@@ -36,9 +36,13 @@ public class CiberIndexTest {
 
 	@Test
 	public void testGetUniqueFormats() {
-		Iterator<String> formats = new CiberQueryBuilder().limit(400).getUniqueFormats();
-		while(formats.hasNext()) System.out.println(formats.next());
-		
+		Iterator<String> formats = new CiberQueryBuilder().getUniqueFormats();
+    int c = 0;
+		while(formats.hasNext()) {
+      System.out.println(formats.next());
+      c++;
+    }
+    System.out.println("found formats: "+c);
 	}
 
 }

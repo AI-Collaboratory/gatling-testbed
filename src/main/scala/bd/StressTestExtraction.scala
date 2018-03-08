@@ -1,16 +1,16 @@
-package bd.ciber.gatling
+package bd
 
 import scala.concurrent.duration._
 import io.gatling.commons.validation._
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import io.gatling.jdbc.Predef._
-import bd.ciber.gatling.BrownDogAPI._
+import bd.BrownDogAPI._
 import java.net.URLEncoder
-import bd.ciber.testbed.CiberQueryBuilder
+import ciber.CiberQueryBuilder
 
 class StressTestExtraction extends Simulation {
-  
+
   // Data: Unlimited newly random slice of URLs, less than 20GB files, excluding SHX and SHP
   val cqbiter = new CiberQueryBuilder().makePublicURLs().minBytes(100).maxBytes(20e6.toInt).excludeExtensions("SHX", "SHP").iterator()
   val feeder = Iterator.continually({ Map("FILE_URL" -> cqbiter.next) })

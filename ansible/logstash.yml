@@ -13,6 +13,7 @@
     owner: root
     group: root
     mode: 0644
+  tags: glc
 
 - name: Stop Logstash
   systemd:

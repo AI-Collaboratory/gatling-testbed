@@ -1,21 +1,21 @@
-package bd.ciber.gatling
+package bd
 
 import scala.concurrent.duration._
 import io.gatling.commons.validation._
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import io.gatling.jdbc.Predef._
-import bd.ciber.gatling.BrownDogAPI._
+import bd.BrownDogAPI._
 import scala.util.Random
 import java.net.URLEncoder
-import bd.ciber.testbed.CiberQueryBuilder
+import ciber.CiberQueryBuilder
 
 class StressTestConversion extends Simulation {
 
   // Data: Unlimited newly random slice as URLs, files less than 20GB, exclude SHX and SHP
   val cqbiter = new CiberQueryBuilder().makePublicURLs().limit(5000).minBytes(100).maxBytes(20e6.toInt).excludeExtensions("SHX", "SHP").iterator()
   val feeder = Iterator.continually({ Map(FILE_URL -> cqbiter.next) })
-  
+
   val scnConvert = scenario("browndog")
     .feed(feeder)
     .exec(initActions)
@@ -30,7 +30,7 @@ class StressTestConversion extends Simulation {
       val outputs = session(CONVERSION_OUTPUTS).as[Array[String]]
       session.set(OUTPUT_FILE_EXTENSION, Random.shuffle(outputs.toList).head)
     })
-    // Proceed only if a conversion format is available. 
+    // Proceed only if a conversion format is available.
     .doIf( session => { session.contains(OUTPUT_FILE_EXTENSION) && session(OUTPUT_FILE_EXTENSION).as[String].trim().length() > 0 })(
       exec(convertByFileURL))
     // Proceed only if a URL was returned (not a quota reached message)

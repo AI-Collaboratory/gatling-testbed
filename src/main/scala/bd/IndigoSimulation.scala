@@ -1,4 +1,4 @@
-package bd.ciber.gatling
+package bd
 
 import scala.concurrent.duration._
 import scala.collection.mutable.Queue
@@ -13,7 +13,7 @@ class IndigoSimulation extends Simulation {
   val LOG = LoggerFactory.getLogger("bd.ciber.gatling.IndigoSimulation");
   val cdmiProxyUrl = System.getProperty("cdmiProxyUrl");
   val startPath = System.getProperty("dtsTestPath1");
-  
+
   val httpProtocol = http.baseURL(cdmiProxyUrl).disableWarmUp
   val headers_any = Map(
       "X-CDMI-Specification-Version" -> "1.1",
@@ -70,9 +70,9 @@ class IndigoSimulation extends Simulation {
                 session
               })
         })
-        
+
   val scnCrawlAllFiles = scenario("indigo-crawl-all-files")
-    .exec(session => { 
+    .exec(session => {
         session.set("pathQueue", Queue[String]()).set("path", cdmiProxyUrl + startPath)
       }
     )
@@ -104,10 +104,10 @@ class IndigoSimulation extends Simulation {
           }
           session.set("path", next)
         }
-      )      
+      )
     )
 
-     
+
 
   val scnStart = scenario("testCDMIWalkToFile")
     .exec(scnWalkToFile)

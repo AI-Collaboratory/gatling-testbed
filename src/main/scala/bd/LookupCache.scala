@@ -1,4 +1,4 @@
-package bd.ciber.gatling
+package bd
 
 import scala.collection._
 import java.util.concurrent.ConcurrentHashMap
@@ -20,7 +20,7 @@ class LookupCache {
         throw new Exception( "You can't put more than one value into the cache! " + key )
     else
       throw new Exception( "You have not locked '" + key + "'" )
-  
+
   // This is not thread safe. Expecting this call only before each test.
   def clear() =
     locked.clear()

@@ -5,7 +5,7 @@ input {
 filter {
     if ([message] =~ "^RUN") {
         grok {
-            match => { "message" => "RUN\t%{DATA:simulationClassName}\t%{DATA:userDefinedSimulationId}\t%{DATA:defaultSimulationId}\t%{INT:start}\t%{DATA:description}\t2.0" }
+            match => { "message" => "RUN\t%{DATA:simulationClass:keyword}\t%{DATA:userDefinedSimulationId:keyword}\t%{DATA:defaultSimulationId:keyword}\t%{INT:start}\t%{DATA:description:text}\t2.0" }
             keep_empty_captures => false
             add_field => { "type" => "RUN" }
         }
@@ -18,7 +18,7 @@ filter {
     }
     if ([message] =~ "^USER") {
         grok {
-            match => { "message" => "USER\t%{DATA:scenario}\t%{INT:userId}\t%{WORD:event}\t%{DATA:startDate}\t%{INT:timestamp}" }
+            match => { "message" => "USER\t%{DATA:scenario:keyword}\t%{INT:userId:int}\t%{WORD:event}\t%{DATA:startDate}\t%{INT:timestamp}" }
             keep_empty_captures => false
             add_field => { "type" => "USER" }
         }
@@ -34,7 +34,7 @@ filter {
     }
     if ([message] =~ "^REQUEST") {
         grok {
-            match => { "message" => "REQUEST\t%{DATA:scenario_name}\t%{INT:userID}\t%{DATA:group}\t%{DATA:name}\t%{INT:requestStart}\t%{INT:requestEnd}\t%{WORD:status}\t%{DATA:msg}\t%{DATA:method}|%{DATA:url}|%{DATA:file}|%{INT:statusCode}" }
+            match => { "message" => "REQUEST\t%{DATA:scenario_name:keyword}\t%{INT:userID}\t%{DATA:group}\t%{DATA:name}\t%{INT:requestStart}\t%{INT:requestEnd}\t%{WORD:status}\t%{DATA:msg}\t%{DATA:method}|%{DATA:url}|%{DATA:file}|%{INT:statusCode}" }
             keep_empty_captures => false
             add_field => { "type" => "REQUEST" }
         }

@@ -1,4 +1,4 @@
-package bd.ciber.testbed;
+package ciber;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -28,7 +28,7 @@ public class CiberQueryBuilder implements Iterable<String> {
 	private enum DataType { LOCAL_PATHS, PUBLIC_URLS }
 
 	private JestClientFactory factory = null;
-	
+
 	private DataType outputType = DataType.LOCAL_PATHS;
 	private int howMany = -1;  // default is no limit
 	private float randomSeed = (float)Math.random();
@@ -44,7 +44,7 @@ public class CiberQueryBuilder implements Iterable<String> {
 		factory.setHttpClientConfig(new HttpClientConfig.Builder(elasticsearchURL).multiThreaded(true)
 				.defaultMaxTotalConnectionPerRoute(2).maxTotalConnection(20).build());
 	}
-	
+
 	public CiberQueryBuilder makePublicURLs() {
 		this.outputType = DataType.PUBLIC_URLS;
 		return this;
@@ -57,36 +57,36 @@ public class CiberQueryBuilder implements Iterable<String> {
 		this.howMany = limit;
 		return this;
 	}
-	
+
 	public CiberQueryBuilder randomSeed(float seed) {
 		this.randomSeed = seed;
 		return this;
 	}
-	
+
 	public CiberQueryBuilder maxBytes(int max) {
 		this.maxSize = new Integer(max);
 		return this;
 	}
-	
+
 	public CiberQueryBuilder minBytes(int min) {
 		this.minSize = new Integer(min);
 		return this;
 	}
-	
+
 	public CiberQueryBuilder includeExtensions(String... extensions ) {
 		for(String ext : extensions) {
 			this.includeExtensions.add(ext.toUpperCase());
 		}
 		return this;
 	}
-	
+
 	public CiberQueryBuilder excludeExtensions(String... extensions ) {
 		for(String ext : extensions) {
 			this.excludeExtensions.add(ext.toUpperCase());
 		}
 		return this;
 	}
-	
+
 	/**
 	 * Iterates through a sample of the CI-BER data. Will return a consistent
 	 * sample whenever a same randomSeed is supplied. then
@@ -100,15 +100,15 @@ public class CiberQueryBuilder implements Iterable<String> {
 		if (this.includeExtensions.size() > 0) {
 			qbs.must(QueryBuilders.termsQuery("extension", this.includeExtensions));
 		}
-		
+
 		if (this.excludeExtensions.size() > 0) {
 			qbs.mustNot(QueryBuilders.termsQuery("extension", this.excludeExtensions));
 		}
-		
+
 		if (this.minSize != null || this.maxSize != null) {
 			qbs.must(QueryBuilders.rangeQuery("size").from(this.minSize).to(this.maxSize));
 		}
-		
+
 		qbs.must(QueryBuilders.rangeQuery("random").from(this.randomSeed));
 
 		SearchSourceBuilder ssb = new SearchSourceBuilder().query(qbs)
@@ -118,11 +118,11 @@ public class CiberQueryBuilder implements Iterable<String> {
 		return result;
 	}
 
-	
+
 	/**
 	 * Iterates through a sample of the CI-BER data. Will return a consistent
 	 * sample whenever a same randomSeed is supplied. then
-	 * 
+	 *
 	 * @param howMany
 	 *            limit the number of results or 0 for no limit
 	 * @param randomSeed
@@ -138,7 +138,7 @@ public class CiberQueryBuilder implements Iterable<String> {
 	 */
 	public Iterator<String> getUniqueFormats() {
 		if(this.howMany == -1) {
-			this.howMany = 500;
+			this.howMany = 5000;
 		}
 		String query = "{" +
 					     "\n\"size\": 0," +
@@ -160,19 +160,28 @@ public class CiberQueryBuilder implements Iterable<String> {
 			JsonArray buckets = result.getJsonObject().getAsJsonObject("aggregations").getAsJsonObject("distinct_format").getAsJsonArray("buckets");
 			for(JsonElement j : buckets) {
 				String foo = j.getAsJsonObject().get("key").getAsString();
-				formats.add(foo);
+        try {
+          Integer.parseInt(foo);
+          continue;
+        } catch(NumberFormatException e) {
+          if(foo.length() < 6) {
+            if(foo.startsWith("OLD") && foo.length() > 3) { continue; }
+            formats.add(foo);
+          }
+        }
 			}
 		} catch (IOException e) {
 			throw new Error("Cannot perform next inventory search", e);
 		}
+    System.out.println("Got this many formats: "+formats.size());
 		return formats.iterator();
-	}	
+	}
 
-	
+
 	private static class PathIterator implements Iterator<String>, Closeable {
 		private static String ftpOverHttpUrl = System.getProperty("ftpOverHttpUrl", "http://example.com/ftpOverHttp");
 		private static String localPathPrefix = System.getProperty("localPathPrefix", "/some/local/path");
-		
+
 		private int howMany;
 		private SearchSourceBuilder ssb;
 		private JestClient client;

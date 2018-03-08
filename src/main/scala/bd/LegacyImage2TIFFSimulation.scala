@@ -1,20 +1,20 @@
-package bd.ciber.gatling
+package bd
 
 import scala.concurrent.duration._
 import io.gatling.commons.validation._
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import io.gatling.jdbc.Predef._
-import bd.ciber.gatling.BrownDogAPI._
-import bd.ciber.testbed.CiberQueryBuilder
+import bd.BrownDogAPI._
+import ciber.CiberQueryBuilder
 
 class LegacyImage2TIFFSimulation extends Simulation {
-  
+
   // Data: 1100 random paths, less than 20GB files, including listed extensions
   val randomSeed = new java.lang.Float(.19855721)
   val cqbiter = new CiberQueryBuilder().limit(1000).randomSeed(randomSeed).minBytes(100).maxBytes(20e6.toInt).includeExtensions("TARGA", "PICT", "BMP", "PSD", "TGA", "PCT", "EPS", "MACPAINT", "MSP", "PCX").iterator()
   val feeder = Iterator.continually({ Map("FILE_PATH" -> cqbiter.next) })
-  
+
   val scnFeedToBD = scenario("legacyImage2TIFF")
     .feed(feeder)
     .exec(initActions)
