@@ -1,5 +1,0 @@
-bd.ciber.gatling.AlloySimulation	alloysimulation	RUN	1425400194812	 	2.0
-testAlloyCrawlsToData	5057067921805231381-0	USER	START	1425400194815	0
-testAlloyCrawlsToData	5057067921805231381-0	REQUEST		request_login	1425400194816	1425400194816	1425400194816	1425400254831	KO	java.net.ConnectException: connection timed out: alloy.epcc.ed.ac.uk/129.215.175.13:443
-testAlloyCrawlsToData	5057067921805231381-0	REQUEST		request_container	1425400254837	1425400254837	1425400254837	1425400314861	KO	java.net.ConnectException: connection timed out: alloy.epcc.ed.ac.uk/129.215.175.13:443
-testAlloyCrawlsToData	5057067921805231381-0	USER	END	1425400194815	1425400314864

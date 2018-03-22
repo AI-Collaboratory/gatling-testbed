@@ -1,3 +1,8 @@
+* TODO: make sure we get one ES index per test run (via sim name appended to index name)
+* DONE: develop generic dashboard with from: to: variables passed in from simulation range or focus on 1 index (sim) by name
+* DONE: ES query to get the time range of events in a simulation index..
+* DONE: Capture scenario duration for each USER on END event. (math from start time)
+
 Simulations to develop:
 * SIM: crawl to random file, extract type, convert to preservation format
 * SIM: crawl to random file, extract type, convert to browser accepted format

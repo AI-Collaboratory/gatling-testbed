@@ -15,7 +15,10 @@ class ExtractionFormatCoverage extends Simulation {
   val formats = new CiberQueryBuilder().limit(2000).getUniqueFormats()
   val feeder = Iterator.continually({
     var format:String = formats.next
-    Map("FILE_URL" -> new CiberQueryBuilder().makePublicURLs().limit(1).includeExtensions(format).iterator().next)
+    Map("FILE_URL" -> new CiberQueryBuilder()
+      .makePublicURLs()
+      .limit(1)
+      .includeExtensions(format).iterator().next)
   })
 
   val scnExtract = scenario("ExtractionFormatCoverageScenario")
