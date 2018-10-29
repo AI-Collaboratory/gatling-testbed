@@ -27,9 +27,7 @@ class Documents2PDFCoverageSimulation extends Simulation {
     .exec(convertByFilePath)
 
   setUp(
-    scnLogin.inject(atOnceUsers(1),nothingFor(30 seconds)),
-    scnFeedToBD.inject(
-        atOnceUsers(20),
-        constantUsersPerSec(1).during(980))
+    scnLogin.inject(atOnceUsers(1),nothingFor(45 seconds)),
+    scnFeedToBD.inject(constantUsersPerSec(10) during(100))
   ).protocols(httpProtocol)
 }

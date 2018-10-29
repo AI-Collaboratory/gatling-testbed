@@ -7,8 +7,10 @@ import io.gatling.http.request.ExtraInfo
 import java.net.URLEncoder
 import io.gatling.core.action.builder.AsLongAsLoopType
 
-object BrownDogAPI {
+object LDPScenarioBuilder {
 
+  val SPEC_URI = "http://www.w3.org/TR/ldp"
+  
   // Session keys
   val BD_URL = "BD_URL"
   val BD_API_KEY = "BD_API_KEY"
@@ -29,10 +31,7 @@ object BrownDogAPI {
   val CONVERSION_INPUTS = "CONVERSION_INPUTS"
   val BODY_STRING = "BODY_STRING"
 
-  val bdUrl = System.getenv("BD_URL");
-  val bdAPIKey = System.getenv("BD_API_KEY");
-  val bdUsername = System.getenv("BD_USERNAME");
-  val bdPassword = System.getenv("BD_PASSWORD");
+  val bdUrl = System.getProperty("ldpUrl");
 
   val httpProtocol = http.baseURL(bdUrl)
     .extraInfoExtractor { extraInfo => List(getExtraInfo(extraInfo)) }
@@ -50,8 +49,26 @@ object BrownDogAPI {
     extras.mkString("|")
   }
 
-  val headers_accept_json = Map("Accept" -> "application/json", "Content-type" -> "application/json")
-  val headers_accept_text = Map("Accept" -> "text/plain", "Content-type" -> "text/plain")
+  val headers_turtle = Map("Accept" -> "text/turtle;charset=utf-8", "Content-type" -> "text/turtle;charset=utf-8")
+  
+  def postRDFSource( path:String, slug:String, turtle:String ) : ChainBuilder = {
+    exec(http("postRDFSource")
+        .post(path)
+        .body(StringBody(turtle))
+        .headers(headers_turtle)
+        .header("Slug", slug)
+        .check(status.is(201))
+    )
+  }
+  
+  def postBinary( path:String, slug:String, file:File ) : ChainBuilder = {
+    exec(http("postContainer")
+        .post(path)
+        .header("Slug", slug)
+        .bodyPart(RawFileBodyPart("file", data.xls).contentType("application/vnd.ms-excel").fileName("data.xls")).asMultipartForm
+        .check(status.is(201))
+    )
+  }
 
   private val tokenCache = new LookupCache()
 
@@ -66,6 +83,8 @@ object BrownDogAPI {
       case x => Failure("The DTS failed to extract for "+ extension + " at " + path + " with status: "+x)
     }
   }
+  
+  
 
   val scnClearTokenCache = scenario("clearCache")
     .exec( session => {
@@ -87,7 +106,7 @@ object BrownDogAPI {
         .set(USER_NAME, bdUsername)
         .set(USER_PASSWORD, bdPassword)
     }).exec(loginWithTokenCaching)
-
+    
   def loginWithTokenCaching =
     doIf( session => tokenCache.lock( session( USER_NAME ).as[String], session.userId ) ) {
       // code that does the login and stores the token into TOKEN_VALUE
@@ -115,7 +134,8 @@ object BrownDogAPI {
     }
     // pull the token out of the cache for use in subsequent tests
     .exec( session => session.set( TOKEN_VALUE, tokenCache.get( session(USER_NAME).as[String] ) ) )
-
+    
+    
   def getConversionInputs =
     exec(http("getConversionInputs")
         .get("/conversions/inputs/${OUTPUT_FILE_EXTENSION}")

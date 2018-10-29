@@ -38,7 +38,7 @@ public class CiberQueryBuilder implements Iterable<String> {
 	private Set<String> includeExtensions = new HashSet<String>();
 
 	public CiberQueryBuilder() {
-		String elasticsearchURL = System.getProperty("elasticsearchURL", "http://localhost:9200");
+		String elasticsearchURL = System.getenv("ELASTICSEARCH_URL");
 		// Construct a new Jest client according to configuration via factory
 		factory = new JestClientFactory();
 		factory.setHttpClientConfig(new HttpClientConfig.Builder(elasticsearchURL).multiThreaded(true)
@@ -179,8 +179,8 @@ public class CiberQueryBuilder implements Iterable<String> {
 
 
 	private static class PathIterator implements Iterator<String>, Closeable {
-		private static String ftpOverHttpUrl = System.getProperty("ftpOverHttpUrl", "http://example.com/ftpOverHttp");
-		private static String localPathPrefix = System.getProperty("localPathPrefix", "/some/local/path");
+		private static String ftpOverHttpUrl = System.getenv("FTP_OVER_HTTP_URL");
+		private static String localPathPrefix = System.getenv("LOCAL_PATH_PREFIX");
 
 		private int howMany;
 		private SearchSourceBuilder ssb;
@@ -208,7 +208,7 @@ public class CiberQueryBuilder implements Iterable<String> {
 				.build();
 			try {
 				SearchResult result = this.client.execute(search);
-				//System.out.println(result.getSourceAsString());
+				// System.out.println(result.getSourceAsString());
 				this.hits = result.getHits(Map.class).iterator();
 			} catch (IOException e) {
 				throw new Error("Cannot perform next inventory search", e);

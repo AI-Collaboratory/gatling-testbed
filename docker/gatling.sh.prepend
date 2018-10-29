@@ -1,0 +1,11 @@
+# These lines added by the Gatling Testbed Docker build
+JAVA_OPTS="${JAVA_OPTS} -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
+JAVA_OPTS="${JAVA_OPTS} -DbdUrl=${BD_URL}"
+JAVA_OPTS="${JAVA_OPTS} -DlocalPathPrefix=/srv/ciber"
+JAVA_OPTS="${JAVA_OPTS} -DbdAPIKey=${BD_API_KEY}"
+JAVA_OPTS="${JAVA_OPTS} -DbdUsername=${BD_USERNAME}"
+JAVA_OPTS="${JAVA_OPTS} -DbdPassword=${BD_PASSWORD}"
+JAVA_OPTS="${JAVA_OPTS} -DelasticsearchURL=${ELASTICSEARCH_URL}"
+JAVA_OPTS="${JAVA_OPTS} -DcdmiProxyUrl=${CDMI_PROXY_URL}"
+JAVA_OPTS="${JAVA_OPTS} -DftpOverHttpUrl=${FTP_OVER_HTTP_URL}"
+JAVA_OPTS="${JAVA_OPTS} -DdtsTestPath1=${DTS_TEST_PATH1}"
