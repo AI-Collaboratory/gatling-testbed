@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import org.apache.jena.atlas.logging.Log;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -203,7 +204,9 @@ public class CiberQueryBuilder implements Iterable<String> {
 
 		private void getMoreHits() {
 			ssb = ssb.from(this.from).size(500);
-			Search search = new Search.Builder(ssb.toString())
+			String searchQuery = ssb.toString();
+			Log.info("ciber-inventory query: {}", searchQuery);
+			Search search = new Search.Builder(searchQuery)
 				.addIndex("ciber-inventory")
 				.build();
 			try {

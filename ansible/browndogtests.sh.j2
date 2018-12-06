@@ -1,6 +1,0 @@
-#!/bin/bash
-{% for item in bd_simulations %}
-export SIM_NAME="{{ item }}"
-/opt/gatling-charts-highcharts-bundle-2.3.0/bin/gatling.sh -s bd.{{ item }} -on "browndog"
-sleep 600
-{% endfor %}

@@ -11,7 +11,7 @@ import java.net.URLEncoder
 import java.io.InputStream
 import ciber.CiberQueryBuilder
 
-class StressTestIngest extends Simulation {
+class LargeFiles extends Simulation {
 
   val BASE_URL = System.getenv("LDP_URL")
   val headers_turtle = Map("Accept" -> "text/turtle", "Content-Type" -> "text/turtle")
@@ -30,16 +30,16 @@ class StressTestIngest extends Simulation {
     extras.mkString("|")
   }
 
-  // Data: Unlimited newly random slice as URLs, files less than 20GB
+  // Data: Unlimited consistent random slice as URLs, files at least 1GB
   val seed = new java.lang.Float(.19855721)
-  val cqbiter = new CiberQueryBuilder().randomSeed(seed).limit(20000).minBytes(100).maxBytes(20e6.toInt).iterator()
+  val cqbiter = new CiberQueryBuilder().randomSeed(seed).limit(2000).minBytes(1e9.toInt).iterator()
   val feeder = Iterator.continually({
     val path = cqbiter.next
     val title = path.substring(path.lastIndexOf('/')+1, path.length())
     Map("INPUTSTREAM" -> new java.io.FileInputStream(path), "PATH" -> path, "TITLE" -> title)
     })
 
-  val CONTAINER_NAME = "stress5000"
+  val CONTAINER_NAME = "largefiles"
 
 
   // Create a Collection container
