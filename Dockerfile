@@ -2,7 +2,7 @@ FROM openjdk:8-jre
 MAINTAINER Gregory Jansen <jansen@umd.edu>
 
 # Install Logstash
-RUN curl https://artifacts.elastic.co/downloads/logstash/logstash-6.4.2.tar.gz \
+RUN curl https://artifacts.elastic.co/downloads/logstash/logstash-6.5.3.tar.gz \
   | tar -xzC /usr/share/
 
 # Install Gatling
@@ -22,6 +22,9 @@ RUN cp /gatling.sh.prepend /usr/share/gatling-charts-highcharts-bundle-2.3.0/bin
 # Add run script
 COPY docker/testrun.sh /testrun.sh
 RUN chmod a+x /testrun.sh
+
+# Will mount any test system log output at /logs, i.e. tomcat logs
+RUN mkdir /logs
 
 # Add the testbed library
 ARG JAR_FILE

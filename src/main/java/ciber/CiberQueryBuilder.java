@@ -10,11 +10,12 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.apache.jena.atlas.logging.Log;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -26,6 +27,7 @@ import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
 
 public class CiberQueryBuilder implements Iterable<String> {
+	private static final Logger log = LoggerFactory.getLogger(CiberQueryBuilder.class);
 	private enum DataType { LOCAL_PATHS, PUBLIC_URLS }
 
 	private JestClientFactory factory = null;
@@ -76,14 +78,14 @@ public class CiberQueryBuilder implements Iterable<String> {
 
 	public CiberQueryBuilder includeExtensions(String... extensions ) {
 		for(String ext : extensions) {
-			this.includeExtensions.add(ext.toUpperCase());
+			this.includeExtensions.add(ext.toLowerCase());
 		}
 		return this;
 	}
 
 	public CiberQueryBuilder excludeExtensions(String... extensions ) {
 		for(String ext : extensions) {
-			this.excludeExtensions.add(ext.toUpperCase());
+			this.excludeExtensions.add(ext.toLowerCase());
 		}
 		return this;
 	}
@@ -112,6 +114,8 @@ public class CiberQueryBuilder implements Iterable<String> {
 
 		qbs.must(QueryBuilders.rangeQuery("random").from(this.randomSeed));
 
+		log.warn("query: {}", qbs.toString());
+		
 		SearchSourceBuilder ssb = new SearchSourceBuilder().query(qbs)
 				.sort("random", SortOrder.ASC);
 
@@ -205,7 +209,7 @@ public class CiberQueryBuilder implements Iterable<String> {
 		private void getMoreHits() {
 			ssb = ssb.from(this.from).size(500);
 			String searchQuery = ssb.toString();
-			Log.info("ciber-inventory query: {}", searchQuery);
+			log.info("ciber-inventory query: {}", searchQuery);
 			Search search = new Search.Builder(searchQuery)
 				.addIndex("ciber-inventory")
 				.build();
@@ -214,6 +218,7 @@ public class CiberQueryBuilder implements Iterable<String> {
 				// System.out.println(result.getSourceAsString());
 				this.hits = result.getHits(Map.class).iterator();
 			} catch (IOException e) {
+				log.error("Cannot perform search", e);
 				throw new Error("Cannot perform next inventory search", e);
 			}
 		}

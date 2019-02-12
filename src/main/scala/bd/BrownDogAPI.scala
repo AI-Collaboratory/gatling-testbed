@@ -47,7 +47,7 @@ object BrownDogAPI {
       extras = extras :+ ""
     }
     extras :+  extraInfo.response.statusCode
-    extras.mkString("|")
+    extras.mkString(" ")
   }
 
   val headers_accept_json = Map("Accept" -> "application/json", "Content-type" -> "application/json")

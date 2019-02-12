@@ -8,10 +8,10 @@ import io.gatling.jdbc.Predef._
 import bd.BrownDogAPI._
 import ciber.CiberQueryBuilder
 
-class Documents2PDFCoverageSimulation extends Simulation {
+class Documents2PDFCoverage extends Simulation {
 
   // Data: 1100 random paths, less than 20GB files, including listed extensions
-  val cqbiter = new CiberQueryBuilder().limit(1100).minBytes(100).maxBytes(20e6.toInt).includeExtensions("DOC", "DOCX", "ODF", "RTF", "WPD", "WP", "LWP", "WSD").iterator()
+  val cqbiter = new CiberQueryBuilder().limit(2000).minBytes(100).maxBytes(20e6.toInt).includeExtensions("DOC", "DOCX", "ODF", "RTF", "WPD", "WP", "LWP", "WSD").iterator()
   val feeder = Iterator.continually({ Map("FILE_PATH" -> cqbiter.next) })
 
   val scnFeedToBD = scenario("Documents2PDFCoverageScenario")

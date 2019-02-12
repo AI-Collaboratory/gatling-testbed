@@ -26,8 +26,7 @@ class LargeFiles extends Simulation {
     } else {
       extras = extras :+ ""
     }
-    extras :+  extraInfo.response.statusCode
-    extras.mkString("|")
+    extras.mkString(" ")
   }
 
   // Data: Unlimited consistent random slice as URLs, files at least 1GB
