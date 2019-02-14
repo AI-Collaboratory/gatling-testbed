@@ -3,7 +3,6 @@ package bd
 import io.gatling.commons.validation._
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
-import io.gatling.http.request.ExtraInfo
 import java.net.URLEncoder
 import io.gatling.core.action.builder.AsLongAsLoopType
 
@@ -33,23 +32,7 @@ object BrownDogAPI {
   val bdAPIKey = System.getenv("BD_API_KEY");
   val bdUsername = System.getenv("BD_USERNAME");
   val bdPassword = System.getenv("BD_PASSWORD");
-
-  val httpProtocol = http.baseURL(bdUrl)
-    .extraInfoExtractor { extraInfo => List(getExtraInfo(extraInfo)) }
-
-  private def getExtraInfo(extraInfo: ExtraInfo): String = {
-    var extras = List( extraInfo.request.getMethod, extraInfo.request.getUrl )
-    if( extraInfo.session.contains(FILE_PATH) ) {
-      extras = extras :+ extraInfo.session.get(FILE_PATH).as[String]
-    } else if( extraInfo.session.contains(FILE_URL) ) {
-      extras = extras :+ extraInfo.session.get(FILE_URL).as[String]
-    } else {
-      extras = extras :+ ""
-    }
-    extras :+  extraInfo.response.statusCode
-    extras.mkString(" ")
-  }
-
+  val httpProtocol = http.baseUrl(bdUrl);
   val headers_accept_json = Map("Accept" -> "application/json", "Content-type" -> "application/json")
   val headers_accept_text = Map("Accept" -> "text/plain", "Content-type" -> "text/plain")
 

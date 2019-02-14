@@ -7,7 +7,7 @@ import io.gatling.http.Predef._
 import io.gatling.jdbc.Predef._
 import bd.BrownDogAPI._
 import java.net.URLEncoder
-import ciber.CiberQueryBuilder
+import umd.ciber.ciber_sampling.CiberQueryBuilder
 
 class StressTestExtraction extends Simulation {
 

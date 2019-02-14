@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>bd.ciber</groupId>
 	<artifactId>gatling-testbed</artifactId>
-	<version>0.4.53-SNAPSHOT</version>
+	<version>0.4.64-SNAPSHOT</version>
 
 	<repositories>
 		<repository>
@@ -31,15 +32,13 @@
 	</pluginRepositories>
 
 	<properties>
-		<spring.version>4.1.3.RELEASE</spring.version>
-		<scala.version>2.12.3</scala.version>
+		<version.scala.epoch>2.12</version.scala.epoch>
+		<version.scala.release>2.12.8</version.scala.release>
+		<version.scala.zinc>1.1.7</version.scala.zinc>
 		<encoding>UTF-8</encoding>
-
-		<gatling.version>2.3.0</gatling.version>
-		<gatling-highcharts.version>2.3.0</gatling-highcharts.version>
-
-		<scala-maven-plugin.version>3.1.6</scala-maven-plugin.version>
-		<scala.version.old>2.10.4</scala.version.old>
+		<gatling.version>3.0.3</gatling.version>
+		<gatling-highcharts.version>3.0.3</gatling-highcharts.version>
+		<scala-maven-plugin.version>3.4.4</scala-maven-plugin.version>
 		<jackson.version>2.5.0</jackson.version>
 	</properties>
 
@@ -59,31 +58,6 @@
 				<groupId>io.gatling.highcharts</groupId>
 				<artifactId>gatling-charts-highcharts</artifactId>
 				<version>${gatling-highcharts.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.scala-lang</groupId>
-				<artifactId>scala-library</artifactId>
-				<version>${scala.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-core</artifactId>
-				<version>${spring.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-context</artifactId>
-				<version>${spring.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-beans</artifactId>
-				<version>${spring.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-test</artifactId>
-				<version>${spring.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -111,53 +85,9 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.12</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>1.3.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
-			<version>1.10.19</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.elasticsearch</groupId>
-			<artifactId>elasticsearch</artifactId>
-			<version>5.6.3</version>
-		</dependency>
-		<dependency>
-			<groupId>io.searchbox</groupId>
-			<artifactId>jest</artifactId>
-			<version>5.3.3</version>
-		</dependency>
-		<dependency>
-			<groupId>org.scala-lang</groupId>
-			<artifactId>scala-library</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.25</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-   			<groupId>org.apache.jena</groupId>
-   			<artifactId>apache-jena-libs</artifactId>
-   			<type>pom</type>
-   			<version>3.8.0</version>
-		</dependency>
-		<dependency>
-   			<groupId>org.rdfhdt</groupId>
-   			<artifactId>hdt-java-core</artifactId>
-   			<version>1.1</version>
+			<groupId>umd.ciber</groupId>
+			<artifactId>ciber-sampling</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
@@ -165,58 +95,91 @@
 		<finalName>testbed</finalName>
 		<pluginManagement>
 			<plugins>
-				<plugin>
-					<groupId>net.alchim31.maven</groupId>
-					<artifactId>scala-maven-plugin</artifactId>
-					<version>${scala-maven-plugin.version}</version>
-				</plugin>
+				<!-- <plugin> <groupId>net.alchim31.maven</groupId> <artifactId>scala-maven-plugin</artifactId> 
+					<version>${scala-maven-plugin.version}</version> </plugin> -->
 				<plugin>
 					<groupId>io.gatling</groupId>
 					<artifactId>gatling-maven-plugin</artifactId>
 					<version>${gatling.version}</version>
 				</plugin>
+				<plugin>
+					<groupId>com.carrotgarden.maven</groupId>
+					<artifactId>scalor-maven-plugin_2.12</artifactId>
+					<version>1.4.2.20180508161326</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
+			<!-- <plugin> <groupId>net.alchim31.maven</groupId> <artifactId>scala-maven-plugin</artifactId> 
+				<version>${scala-maven-plugin.version}</version> <configuration> <scalaVersion>${scala.version}</scalaVersion> 
+				</configuration> <executions> <execution> <id>scala-compile-first</id> <phase>process-resources</phase> 
+				<goals> <goal>add-source</goal> <goal>compile</goal> </goals> </execution> 
+				<execution> <id>scala-test-compile</id> <phase>process-test-resources</phase> 
+				<goals> <goal>testCompile</goal> </goals> </execution> <execution> <goals> 
+				<goal>compile</goal> <goal>testCompile</goal> </goals> <configuration> <args> 
+				<arg>-target:jvm-1.8</arg> <arg>-deprecation</arg> <arg>-feature</arg> <arg>-unchecked</arg> 
+				<arg>-language:implicitConversions</arg> <arg>-language:postfixOps</arg> 
+				</args> </configuration> </execution> </executions> </plugin> -->
 			<plugin>
-				<groupId>net.alchim31.maven</groupId>
-				<artifactId>scala-maven-plugin</artifactId>
+				<groupId>com.carrotgarden.maven</groupId>
+				<artifactId>scalor-maven-plugin_2.12</artifactId>
 				<executions>
 					<execution>
-						<id>scala-compile-first</id>
-						<phase>process-resources</phase>
 						<goals>
-							<goal>add-source</goal>
-							<goal>compile</goal>
+							<goal>eclipse-config</goal>
+							<goal>eclipse-format</goal>
+							<goal>eclipse-prescomp</goal>
+							<goal>register-macro</goal>
+							<goal>register-main</goal>
+							<goal>register-test</goal>
+							<goal>compile-macro</goal>
+							<goal>compile-main</goal>
+							<goal>compile-test</goal>
 						</goals>
 					</execution>
-					<execution>
-						<id>scala-test-compile</id>
-						<phase>process-test-resources</phase>
-						<goals>
-							<goal>testCompile</goal>
-						</goals>
-					</execution>
-					<!-- <execution> <goals> <goal>compile</goal> <goal>testCompile</goal>
-						</goals> <configuration> <args> <arg>-target:jvm-1.6</arg> <arg>-deprecation</arg>
-						<arg>-feature</arg> <arg>-unchecked</arg> <arg>-language:implicitConversions</arg>
-						<arg>-language:postfixOps</arg> </args> </configuration> </execution> -->
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.2</version>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
+					<!-- Compiler bridge. -->
+					<defineBridge>
+						<dependency>
+							<groupId>org.scala-sbt</groupId>
+							<artifactId>compiler-bridge_${version.scala.epoch}</artifactId>
+							<version>${version.scala.zinc}</version>
+						</dependency>
+					</defineBridge>
+
+					<!-- Scala compiler. -->
+					<defineCompiler>
+						<dependency>
+							<groupId>org.scala-lang</groupId>
+							<artifactId>scala-compiler</artifactId>
+							<version>${version.scala.release}</version>
+						</dependency>
+					</defineCompiler>
+					<zincOptionsScala>
+						-target:jvm-1.8
+						-deprecation
+						-feature
+						-unchecked
+						-language:implicitConversions
+						-language:postfixOps
+					</zincOptionsScala>
 				</configuration>
-				<!-- <executions> <execution> <phase>compile</phase> <goals> <goal>compile</goal>
-					</goals> </execution> </executions> -->
 			</plugin>
-			<plugin>
+			<!-- <plugin>
 				<groupId>io.gatling</groupId>
 				<artifactId>gatling-maven-plugin</artifactId>
+				<configuration>
+					<disableCompiler>true</disableCompiler>
+				</configuration>
+			</plugin> -->
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.0</version>
+				<configuration>
+					<skip>true</skip>
+					<skipMain>true</skipMain>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -229,79 +192,67 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
-							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>bd.ciber.testbed.RunTestsCommand</mainClass>
-								</transformer>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                  					<resource>META-INF/spring.handlers</resource>
-                				</transformer>
-                				<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                  					<resource>META-INF/spring.schemas</resource>
-                				</transformer>
-							</transformers>
-						    <filters>
-						        <filter>
-						            <artifact>*:*</artifact>
-						            <excludes>
-						                <exclude>META-INF/*.SF</exclude>
-						                <exclude>META-INF/*.DSA</exclude>
-						                <exclude>META-INF/*.RSA</exclude>
-						            </excludes>
-						        </filter>
-						    </filters>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-      <plugin>
-        <groupId>pl.project13.maven</groupId>
-        <artifactId>git-commit-id-plugin</artifactId>
-        <version>2.2.5</version>
-        <executions>
-          <execution>
-            <id>get-the-git-infos</id>
-            <goals>
-              <goal>revision</goal>
-            </goals>
-            <phase>validate</phase>
-          </execution>
-        </executions>
-        <configuration>
-          <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>com.spotify</groupId>
-        <artifactId>dockerfile-maven-plugin</artifactId>
-        <version>1.4.4</version>
-        <executions>
-          <execution>
-            <id>default</id>
-            <goals>
-              <goal>build</goal>
-              <!--goal>push</goal-->
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <repository>gregjan/gatling-testbed-worker</repository>
-          <tag>${project.version}</tag>
-          <buildArgs>
-            <JAR_FILE>testbed.jar</JAR_FILE>
-            <GIT_ORIGIN_REMOTE_URL>${git.remote.origin.url}</GIT_ORIGIN_REMOTE_URL>
-            <GIT_COMMIT_ID_DESCRIBE>${git.commit.id.abbrev}</GIT_COMMIT_ID_DESCRIBE>
-          </buildArgs>
-        </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>javax.activation</groupId>
-            <artifactId>activation</artifactId>
-            <version>1.1.1</version>
-          </dependency>
-        </dependencies>
-      </plugin>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<version>2.2.5</version>
+				<executions>
+					<execution>
+						<id>get-the-git-infos</id>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+						<phase>validate</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>dockerfile-maven-plugin</artifactId>
+				<version>1.4.4</version>
+				<executions>
+					<execution>
+						<id>default</id>
+						<goals>
+							<goal>build</goal>
+							<!--goal>push</goal -->
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<repository>gregjan/gatling-testbed-worker</repository>
+					<tag>${project.version}</tag>
+					<buildArgs>
+						<JAR_FILE>testbed.jar</JAR_FILE>
+						<GIT_ORIGIN_REMOTE_URL>${git.remote.origin.url}</GIT_ORIGIN_REMOTE_URL>
+						<GIT_COMMIT_ID_DESCRIBE>${git.commit.id.abbrev}</GIT_COMMIT_ID_DESCRIBE>
+					</buildArgs>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>javax.activation</groupId>
+						<artifactId>activation</artifactId>
+						<version>1.1.1</version>
+					</dependency>
+				</dependencies>
+			</plugin>
 		</plugins>
 	</build>
 </project>

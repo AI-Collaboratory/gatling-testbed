@@ -23,7 +23,7 @@ class ExtractCollectionSimulation extends Simulation {
   val startPath = System.getProperty("dtsTestPath1");
   LOG.info("Using DTS at URL: "+dtsUrl)
 
-  val httpProtocol = http.baseURL(cdmiProxyUrl).disableWarmUp
+  val httpProtocol = http.baseUrl(cdmiProxyUrl).disableWarmUp
   val headers_accept_json = Map("Accept" -> "application/json", "Content-type" -> "application/json")
   val headers_any = Map(
       "X-CDMI-Specification-Version" -> "1.1",
@@ -37,7 +37,7 @@ class ExtractCollectionSimulation extends Simulation {
 
   val scnList = scenario("indigo-list")
     .exec( session => {
-      LOG.info( "Getting list for: " + session.get("path").as[String] )
+      LOG.info( "Getting list for: " + session("path").as[String] )
       session.set("children", Seq())
     })
     .exec(http("request_container")
@@ -147,6 +147,6 @@ class ExtractCollectionSimulation extends Simulation {
 
   setUp(
       scnLevelFirstCrawl.inject( atOnceUsers(1) ),
-      scnPostFileToExtract.inject( nothingFor(500), rampUsers(200) over(300))
+      scnPostFileToExtract.inject( nothingFor(500), rampUsers(200) during(300))
   ).protocols(httpProtocol)
 }

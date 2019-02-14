@@ -5,29 +5,17 @@ import io.gatling.commons.validation._
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import io.gatling.jdbc.Predef._
-import io.gatling.http.request.ExtraInfo
 import scala.util.Random
 import java.net.URLEncoder
 import java.io.InputStream
-import ciber.CiberQueryBuilder
+import umd.ciber.ciber_sampling.CiberQueryBuilder
 
 class LargeFiles extends Simulation {
 
   val BASE_URL = System.getenv("LDP_URL")
   val headers_turtle = Map("Accept" -> "text/turtle", "Content-Type" -> "text/turtle")
 
-  val httpProtocol = http.baseURL(BASE_URL)
-    .extraInfoExtractor { extraInfo => List(getExtraInfo(extraInfo)) }
-
-  private def getExtraInfo(extraInfo: ExtraInfo): String = {
-    var extras = List( extraInfo.request.getMethod, extraInfo.request.getUrl )
-    if( extraInfo.session.contains("PATH") ) {
-      extras = extras :+ extraInfo.session.get("PATH").as[String]
-    } else {
-      extras = extras :+ ""
-    }
-    extras.mkString(" ")
-  }
+  val httpProtocol = http.baseUrl(BASE_URL)
 
   // Data: Unlimited consistent random slice as URLs, files at least 1GB
   val seed = new java.lang.Float(.19855721)
@@ -90,6 +78,6 @@ class LargeFiles extends Simulation {
         atOnceUsers(1)),
     scnIngest.inject(
         nothingFor(10 seconds),
-        rampUsers(2000) over(200 seconds)
+        rampUsers(2000) during(200 seconds)
     )).protocols(httpProtocol)
 }
