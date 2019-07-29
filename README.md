@@ -20,3 +20,37 @@ The testbed was designed for testing Brown Dog services and for testing Fedora o
  * https://www.archivematica.org/wiki/Media_type_preservation_plans
  * Data set will reflect the most frequently occurring formats in CI-BER collection
  * Note: A better data set would contain most frequently occuring subformats as identified by a characterization tool.
+
+
+## Running tests against Trellis
+Run the following commands:
+
+This builds the project and create thes docker image with the testbed:
+```shell
+mvn clean install
+```
+
+Create a separate docker network for the containers:
+```shell
+docker network create performance-net
+```
+
+Start the trellis container:
+```shell
+docker run --name trellis --net performance-net trellisldp/trellis
+```
+Find the gregjan/gatling-testbed-worker image ID:
+```shell
+docker image ls
+```
+Response:
+```shell
+REPOSITORY                       TAG                 IMAGE ID            CREATED             SIZE
+gregjan/gatling-testbed-worker   x.x.x-SNAPSHOT     ad4540cebd41        5 hours ago         993MB
+...
+```
+
+Start the testbed container
+```shell
+./run.sh <built testbed image id>
+```
