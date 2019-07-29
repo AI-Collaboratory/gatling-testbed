@@ -6,9 +6,12 @@ import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import io.gatling.jdbc.Predef._
 import io.gatling.http.request.ExtraInfo
+
 import scala.util.Random
 import java.net.URLEncoder
 import java.io.InputStream
+import java.util.concurrent.ThreadLocalRandom
+
 import ciber.CiberQueryBuilder
 
 class StressTestIngest extends Simulation {
@@ -17,6 +20,7 @@ class StressTestIngest extends Simulation {
   val LDP_USERNAME = System.getenv("LDP_USERNAME");
   val LDP_PASSWORD = System.getenv("LDP_PASSWORD");
   val headers_turtle = Map("Accept" -> "text/turtle", "Content-Type" -> "text/turtle")
+  val STRESS_DATA = "/tmp/stress-test/stress"
 
   val httpProtocol = http.baseURL(BASE_URL)
     .extraInfoExtractor { extraInfo => List(getExtraInfo(extraInfo)) }
@@ -32,13 +36,13 @@ class StressTestIngest extends Simulation {
   }
 
   // Data: Unlimited newly random slice as URLs, files less than 20GB
-  val seed = new java.lang.Float(.19855721)
-  val cqbiter = new CiberQueryBuilder().randomSeed(seed).limit(20000).minBytes(100).maxBytes(20e6.toInt).iterator()
+//  val seed = new java.lang.Float(.19855721)
+//  val cqbiter = new CiberQueryBuilder().randomSeed(seed).limit(20000).minBytes(100).maxBytes(20e6.toInt).iterator()
   val feeder = Iterator.continually({
-    val path = cqbiter.next
+  val path = STRESS_DATA +  ThreadLocalRandom.current.nextInt(20)
     val title = path.substring(path.lastIndexOf('/')+1, path.length())
     Map("INPUTSTREAM" -> new java.io.FileInputStream(path), "PATH" -> path, "TITLE" -> title)
-    })
+  })
 
   val CONTAINER_NAME = "stress5000"
 
@@ -91,7 +95,7 @@ class StressTestIngest extends Simulation {
     scnCollection.inject(
         atOnceUsers(1)),
     scnIngest.inject(
-        nothingFor(10 seconds),
-        rampUsers(2000) over(200 seconds)
+      nothingFor(10 seconds),
+      rampUsers(1000) over(200 seconds)
     )).protocols(httpProtocol)
 }

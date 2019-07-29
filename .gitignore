@@ -7,3 +7,5 @@ target/
 .cache-tests
 .externalToolBuilders/
 bin/
+.idea/
+*.iml

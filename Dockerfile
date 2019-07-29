@@ -19,6 +19,11 @@ COPY docker/gatling.sh.prepend /gatling.sh.prepend
 RUN cat /usr/share/gatling-charts-highcharts-bundle-2.3.0/bin/gatling.sh >> /gatling.sh.prepend
 RUN cp /gatling.sh.prepend /usr/share/gatling-charts-highcharts-bundle-2.3.0/bin/gatling.sh
 
+# Create test data script
+COPY docker/createData.sh /createData.sh
+RUN chmod a+x /createData.sh
+RUN /createData.sh
+
 # Add run script
 COPY docker/testrun.sh /testrun.sh
 RUN chmod a+x /testrun.sh
