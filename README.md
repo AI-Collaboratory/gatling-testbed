@@ -22,6 +22,17 @@ The testbed was designed for testing Brown Dog services and for testing Fedora o
  * Note: A better data set would contain most frequently occuring subformats as identified by a characterization tool.
 
 
+## Set up
+
+Install Docker (see: https://docs.docker.com/install/overview/)
+
+If you are running docker on a Linux machine you can configure the following optional post install steps:
+- Manage Docker as a non-root user
+- Configure Docker to start on boot
+
+See: https://docs.docker.com/install/linux/linux-postinstall/ for more information on these setups.
+
+
 ## Running tests against Trellis
 Run the following commands:
 
