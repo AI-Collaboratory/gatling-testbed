@@ -55,13 +55,12 @@ Find the gregjan/gatling-testbed-worker image ID:
 docker image ls
 ```
 Response:
-```shell
+<pre>
 REPOSITORY                       TAG                 IMAGE ID            CREATED             SIZE
-gregjan/gatling-testbed-worker   x.x.x-SNAPSHOT     ad4540cebd41        5 hours ago         993MB
-...
-```
+gregjan/gatling-testbed-worker   x.x.x-SNAPSHOT     <b>ad4540cebd41</b>        5 hours ago         993MB
+</pre>
 
 Start the testbed container
-```shell
-./run.sh <built testbed image id>
-```
+<pre>
+./run.sh <<b>built testbed image id</b>>
+</pre>
