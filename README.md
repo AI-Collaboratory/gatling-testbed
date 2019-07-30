@@ -66,6 +66,6 @@ Start the testbed container
 </pre>
 
 ## Test Results
-The results of the tests will be saved in your ~/tmp/stress-results folder. Inside this directory a new folder will be created for each test run in the format <b>stresstestingest-<timestamp></b>. You can change this output directory in the the run.sh script.
+The results of the tests will be saved in your <b>~/tmp/stress-results folder</b>. Inside this directory a new folder will be created for each test run in the format <b>stresstestingest-<timestamp></b>. You can change this output directory in the the run.sh script.
   
 Here will contain a <b>simulation.log</b> that contains the raw data of the test. Also, there is an <b>index.html</b> that contains graphs of the performance tests.
