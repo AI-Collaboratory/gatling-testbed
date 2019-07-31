@@ -13,8 +13,9 @@ RUN curl https://repo1.maven.org/maven2/io/gatling/highcharts/gatling-charts-hig
 RUN unzip -d /usr/share/ /tmp/gatling.zip
 
 # Add config files
-COPY docker/gatling.conf /usr/share/gatling-charts-highcharts-bundle-${GATLING_VERSION}/etc/gatling.conf
+# COPY docker/gatling.conf /usr/share/gatling-charts-highcharts-bundle-${GATLING_VERSION}/conf/gatling.conf
 COPY docker/gatling_logstash.conf /gatling_logstash.conf
+COPY docker/logback.xml /usr/share/gatling-charts-highcharts-bundle-${GATLING_VERSION}/conf/logback.xml
 
 # Modify Gatling script
 COPY docker/gatling.sh.prepend /gatling.sh.prepend

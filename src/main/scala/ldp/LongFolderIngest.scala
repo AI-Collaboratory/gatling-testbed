@@ -25,11 +25,7 @@ import io.gatling.http.Predef.httpStatusCheckMaterializer
 import io.gatling.http.Predef.status
 import umd.ciber.ciber_sampling.CiberQueryBuilder
 
-object folderSeed {
-  val value = new java.lang.Float(.19855721)
-}
-
-class FolderIngest extends Simulation {
+class LongFolderIngest extends Simulation {
   val BASE_URL = System.getenv("LDP_URL")
   val headers_turtle = Map("Content-Type" -> "text/turtle")
   val httpProtocol = http.baseUrl(BASE_URL)
@@ -40,14 +36,14 @@ class FolderIngest extends Simulation {
     val path = cqbiter.next
     val title = path.substring(path.lastIndexOf('/')+1)
     Map("INPUTSTREAM" -> new java.io.FileInputStream(path),
-        "PATH" -> path,
+        "PATH" -> path.replace("%", "_"),
         "FULLPATH" -> path,
         "TITLE" -> title)
     })
-  
+
   val ingestFolders = scenario("ingest-folders")
     .feed(feeder)
-    .doIf( session => { session("PATH").as[String].startsWith("/") } ) { 
+    .doIf( session => { session("PATH").as[String].startsWith("/") } ) {
       exec(session => {
         val path = session("PATH").as[String]
         session.set("PATH", path.substring(1))
@@ -97,10 +93,10 @@ class FolderIngest extends Simulation {
           .body(RawFileBody("${FULLPATH}"))
           .check()
     )
-    
+
   setUp(
     ingestFolders.inject(
         nothingFor(10 seconds),
-        rampUsersPerSec(10) to(30) during(5 minutes)
+        rampUsersPerSec(1) to(10) during(1 hour)
     )).protocols(httpProtocol)
 }

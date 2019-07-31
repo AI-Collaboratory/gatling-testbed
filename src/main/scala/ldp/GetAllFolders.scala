@@ -24,29 +24,26 @@ import io.gatling.http.Predef.httpHeaderCheckMaterializer
 import io.gatling.http.Predef.httpStatusCheckMaterializer
 import io.gatling.http.Predef.status
 import umd.ciber.ciber_sampling.CiberQueryBuilder
+import ldp.folderSeed._
 
-object folderSeed {
-  val value = new java.lang.Float(.19855721)
-}
-
-class FolderIngest extends Simulation {
+class GetAllFolders extends Simulation {
   val BASE_URL = System.getenv("LDP_URL")
   val headers_turtle = Map("Content-Type" -> "text/turtle")
   val httpProtocol = http.baseUrl(BASE_URL)
 
   // Data: Unlimited newly random slice as URLs, files less than 20GB
-  val cqbiter = new CiberQueryBuilder().randomSeed(folderSeed.value).limit(20000).minBytes(100).maxBytes(20e6.toInt).iterator()
-  val feeder = Iterator.continually({
-    val path = cqbiter.next
-    val title = path.substring(path.lastIndexOf('/')+1)
-    Map("INPUTSTREAM" -> new java.io.FileInputStream(path),
-        "PATH" -> path,
-        "FULLPATH" -> path,
-        "TITLE" -> title)
-    })
-  
-  val ingestFolders = scenario("ingest-folders")
-    .feed(feeder)
+  val getQueryIterator = new CiberQueryBuilder().randomSeed(folderSeed.value).limit(20000).minBytes(100).maxBytes(20e6.toInt).iterator()
+  val getFeeder = Iterator.continually({
+  val path = getQueryIterator.next
+  val title = path.substring(path.lastIndexOf('/')+1)
+  Map("INPUTSTREAM" -> new java.io.FileInputStream(path),
+      "PATH" -> path,
+      "FULLPATH" -> path,
+      "TITLE" -> title)
+  })
+
+  val getAllFolders = scenario("ingest-folders")
+    .feed(getFeeder)
     .doIf( session => { session("PATH").as[String].startsWith("/") } ) { 
       exec(session => {
         val path = session("PATH").as[String]
@@ -62,27 +59,10 @@ class FolderIngest extends Simulation {
           .set("segment", segment)
       })
       .exec(
-          http("HEAD to check if container exists")
-          .head("${Location}/${segment}")
-          .check(status.in(200, 404).saveAs("status"))
+          http("Get container")
+          .get("${Location}/${segment}")
+          .check(status.in(200))
       )
-      .doIf( session => {
-        session("status").as[Integer] != 200
-      }) {
-        exec( // create LDP-RS Container Object
-          http("post LDP RDF Container")
-          .post("${Location}")
-          .headers(headers_turtle)
-          .header("Slug", "${segment}")
-          .header("Link", "<http://www.w3.org/ns/ldp#BasicContainer>; rel=\"type\"")
-          .body(StringBody(
-           """
-              @prefix dcterms: <http://purl.org/dc/terms/> .
-              <> dcterms:title "${segment}" ;
-                 dcterms:extent "${depth}" .
-          """))
-          .check(status.in(201, 200))
-      )}
       .exec( // make next Location for loop
           session => {
             val loc = session("Location").as[String]+"/"+session("segment").as[String]
@@ -91,16 +71,16 @@ class FolderIngest extends Simulation {
       )
     )
     .exec(
-        http("post LDP non-RDF binary")
-          .post("${Location}")
+        http("Get binary")
+          .get("${Location}")
           .header("Content-type", "application/octet-stream")
           .body(RawFileBody("${FULLPATH}"))
-          .check()
+          .check(status.in(200))
     )
     
   setUp(
-    ingestFolders.inject(
-        nothingFor(10 seconds),
-        rampUsersPerSec(10) to(30) during(5 minutes)
+    getAllFolders.inject(
+        nothingFor(5 minutes),
+        rampUsersPerSec(10) to(30) during(10 minutes)
     )).protocols(httpProtocol)
 }
