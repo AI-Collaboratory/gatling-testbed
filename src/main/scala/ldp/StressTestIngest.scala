@@ -96,6 +96,6 @@ class StressTestIngest extends Simulation {
         atOnceUsers(1)),
     scnIngest.inject(
       nothingFor(10 seconds),
-      rampUsers(1000) over(200 seconds)
+      rampUsers(200) over(50 seconds)
     )).protocols(httpProtocol)
 }
