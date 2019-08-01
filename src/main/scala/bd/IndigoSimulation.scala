@@ -14,7 +14,7 @@ class IndigoSimulation extends Simulation {
   val cdmiProxyUrl = System.getProperty("cdmiProxyUrl");
   val startPath = System.getProperty("dtsTestPath1");
 
-  val httpProtocol = http.baseURL(cdmiProxyUrl).disableWarmUp
+  val httpProtocol = http.baseUrl(cdmiProxyUrl).disableWarmUp
   val headers_any = Map(
       "X-CDMI-Specification-Version" -> "1.1",
       "Accept" -> "*/*")
@@ -44,16 +44,16 @@ class IndigoSimulation extends Simulation {
 
   val scnWalkToFile = scenario("indigo-crawl")
     .exec(session => { session.set("path", cdmiProxyUrl + startPath) })
-    .asLongAs(session => { session.get("path").as[String].endsWith("/") })(
+    .asLongAs(session => { session("path").as[String].endsWith("/") })(
       exec(scnList)
         .doIfOrElse(session => {
-          session.contains("children") && session.get("children").as[Seq[String]].length > 0
+          session.contains("children") && session("children").as[Seq[String]].length > 0
         }) {
           exec(
             session => {
-              val children = session.get("children").as[Seq[String]]
+              val children = session("children").as[Seq[String]]
               // FIXME: shuffle the child order or pick at random
-              val path = session.get("path").as[String]
+              val path = session("path").as[String]
               val raw = children.head
               val trim = raw.replaceAll("/", "");
               val enc = java.net.URLEncoder.encode(trim, "UTF-8")

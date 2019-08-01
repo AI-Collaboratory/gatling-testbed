@@ -8,7 +8,7 @@ import io.gatling.jdbc.Predef._
 import bd.BrownDogAPI._
 import scala.util.Random
 import java.net.URLEncoder
-import ciber.CiberQueryBuilder
+import umd.ciber.ciber_sampling.CiberQueryBuilder
 
 class StressTestConversion extends Simulation {
 

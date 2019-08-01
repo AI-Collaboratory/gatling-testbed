@@ -6,7 +6,7 @@ import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import io.gatling.jdbc.Predef._
 import bd.BrownDogAPI._
-import ciber.CiberQueryBuilder
+import umd.ciber.ciber_sampling.CiberQueryBuilder
 
 class LegacyImage2TIFFCoverageSimulation extends Simulation {
 
