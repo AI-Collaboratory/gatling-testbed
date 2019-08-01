@@ -22,8 +22,9 @@ The testbed was designed for testing Brown Dog services and for testing Fedora o
  * Note: A better data set would contain most frequently occuring subformats as identified by a characterization tool.
 
 
-## Set up
+# Setting up in a Dev environment
 
+## Install Docker
 Install Docker (see: https://docs.docker.com/install/overview/)
 
 If you are running docker on a Linux machine you can configure the following optional post install steps:
@@ -32,36 +33,58 @@ If you are running docker on a Linux machine you can configure the following opt
 
 See: https://docs.docker.com/install/linux/linux-postinstall/ for more information on these setups.
 
-
-## Running tests against Trellis
-Run the following commands:
-
-This builds the project and create thes docker image with the testbed:
-```shell
-mvn clean install
-```
-
 Create a separate docker network for the containers:
 ```shell
 docker network create performance-net
 ```
 
+## Setting up Elastic Search
+
+```shell
+docker pull elasticsearch:7.0.0
+
+docker run -d -p 9200:9200 -p 9300:9300 -it -h elasticsearch -e "discovery.type=single-node" --name elasticsearch --rm --net performance-net elasticsearch:7.0.0
+
+curl http://localhost:9200/
+
+curl -X PUT http://localhost:9200/drastic-solid-server-results
+```
+
+**Optional Step**
+
+```shell
+docker run -d  -p 5601:5601 -h kibana --name kibana --rm --net performance-net kibana:6.7.1
+```
+
+http://localhost:5601
+
+## Running tests against a Trellis Cassandra container
+Run the following commands:
+
+```shell
+docker pull cassandra
+docker pull trellisldp/trellis-cassandra:0.8.1-SNAPSHOT
+```
+docker run --name cassandra -p 9042:9042 --network performance-net --rm -d cassandra:latest
+docker cp ~/development/trellis-cassandra/src/test/resources/load.cql cassandra:/tmp
+docker exec -i cassandra cqlsh -f /tmp/load.cql
+docker run -it --network performance-net --rm cassandra cqlsh cassandra
+
 Start the trellis container:
 ```shell
-docker run --name trellis --net performance-net trellisldp/trellis
+docker run -e CASSANDRA_CONTACT_ADDRESS="cassandra" -e CASSANDRA_CONTACT_PORT="9042" --name trellis -p 6060:8080 --net performance-net --rm trellisldp/trellis-cassandra:0.8.1-SNAPSHOT
 ```
-Find the gregjan/gatling-testbed-worker image ID:
+
+
+## Build the Test Bed
+
+This builds the project and create a docker image containing the Gatling test suites:
+
 ```shell
-docker image ls
-```
-Response:
-```shell
-REPOSITORY                       TAG                 IMAGE ID            CREATED             SIZE
-gregjan/gatling-testbed-worker   x.x.x-SNAPSHOT     ad4540cebd41        5 hours ago         993MB
-...
+mvn clean install
 ```
 
 Start the testbed container
 ```shell
-./run.sh <built testbed image id>
+./run.sh
 ```

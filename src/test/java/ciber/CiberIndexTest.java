@@ -1,4 +1,4 @@
-package ciber;
+package umd.ciber.ciber_sampling;
 
 import java.util.Iterator;
 

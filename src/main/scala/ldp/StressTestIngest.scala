@@ -8,11 +8,11 @@ import io.gatling.jdbc.Predef._
 
 import java.util.concurrent.ThreadLocalRandom
 
-import ciber.CiberQueryBuilder
+//import ciber.CiberQueryBuilder
 import scala.util.Random
 import java.net.URLEncoder
 import java.io.InputStream
-#import umd.ciber.ciber_sampling.CiberQueryBuilder
+//import umd.ciber.ciber_sampling.CiberQueryBuilder
 
 class StressTestIngest extends Simulation {
 
@@ -57,6 +57,6 @@ class StressTestIngest extends Simulation {
   setUp(
     scnIngest.inject(
       nothingFor(10 seconds),
-      rampUsers(200) over(50 seconds)
+      rampUsers(200) during(50 seconds)
     )).protocols(httpProtocol)
 }
