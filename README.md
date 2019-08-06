@@ -47,9 +47,10 @@ docker run -d -p 9200:9200 -p 9300:9300 -it -h elasticsearch -e "discovery.type=
 
 curl http://localhost:9200/
 
+Create an Index
 curl -X PUT http://localhost:9200/drastic-solid-server-results
 ```
-
+ 
 **Optional Step**
 
 ```shell
@@ -62,13 +63,19 @@ http://localhost:5601
 Run the following commands:
 
 ```shell
-docker pull cassandra
+docker pull trellisldp/trellis-cassandra-init:0.8.1-SNAPSHOT
 docker pull trellisldp/trellis-cassandra:0.8.1-SNAPSHOT
-```
-docker run --name cassandra -p 9042:9042 --network performance-net --rm -d cassandra:latest
-docker cp ~/development/trellis-cassandra/src/test/resources/load.cql cassandra:/tmp
-docker exec -i cassandra cqlsh -f /tmp/load.cql
+
+docker run --name cassandra -p 9042:9042 --network performance-net --rm -d trellisldp/trellis-cassandra-init:0.8.1-SNAPSHOT
+
+docker exec -i cassandra cqlsh -f /load.cql
+
 docker run -it --network performance-net --rm cassandra cqlsh cassandra
+
+cqlsh> USE trellis;
+cqlsh> DESCRIBE tables;
+
+```
 
 Start the trellis container:
 ```shell
@@ -87,4 +94,25 @@ mvn clean install
 Start the testbed container
 ```shell
 ./run.sh
+```
+
+## Setting up Grafana
+
+Install and run Grafana:
+
+```shell
+docker run --name grafana -d -p 3000:3000 --net performance-net grafana/grafana
+```
+
+http://localhost:3000
+
+
+## MetricBeat
+
+```shell
+cd metricbeat
+
+docker build --tag=drastic/metricbeat .
+
+docker run --name metricbeat --net performance-net --rm --volume=/var/run/docker.sock:/var/run/docker.sock drastic/metricbeat
 ```
