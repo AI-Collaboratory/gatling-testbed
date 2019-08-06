@@ -33,6 +33,8 @@ If you are running docker on a Linux machine you can configure the following opt
 
 See: https://docs.docker.com/install/linux/linux-postinstall/ for more information on these setups.
 
+## Setting up Network
+
 Create a separate docker network for the containers:
 ```shell
 docker network create performance-net
@@ -47,7 +49,7 @@ docker run -d -p 9200:9200 -p 9300:9300 -it -h elasticsearch -e "discovery.type=
 
 curl http://localhost:9200/
 
-Create an Index
+Create an Index (This will be created later when the tests are run so this step can be skipped)
 curl -X PUT http://localhost:9200/drastic-solid-server-results
 ```
  
@@ -59,23 +61,28 @@ docker run -d  -p 5601:5601 -h kibana --name kibana --rm --net performance-net k
 
 http://localhost:5601
 
-## Running tests against a Trellis Cassandra container
+## Setup Cassandra container and load schema needed for Trellis
 Run the following commands:
 
 ```shell
 docker pull trellisldp/trellis-cassandra-init:0.8.1-SNAPSHOT
-docker pull trellisldp/trellis-cassandra:0.8.1-SNAPSHOT
 
 docker run --name cassandra -p 9042:9042 --network performance-net --rm -d trellisldp/trellis-cassandra-init:0.8.1-SNAPSHOT
 
 docker exec -i cassandra cqlsh -f /load.cql
+```
 
+## Checking the schema in the Cassandra container
+
+```shell
 docker run -it --network performance-net --rm cassandra cqlsh cassandra
 
 cqlsh> USE trellis;
 cqlsh> DESCRIBE tables;
 
 ```
+
+## Running Trellis Cassandra LDP Server
 
 Start the trellis container:
 ```shell
