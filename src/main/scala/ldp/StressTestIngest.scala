@@ -8,7 +8,6 @@ import scala.concurrent.duration._
 
 class StressTestIngest extends Simulation {
 
-  val STRESS_DATA = "/tmp/stress-test/stress"
 
   val BASE_URL = System.getenv("LDP_URL")
   val headers_turtle = Map("Content-Type" -> "text/turtle")
@@ -50,6 +49,6 @@ class StressTestIngest extends Simulation {
   setUp(
     scnIngest.inject(
       nothingFor(10 seconds),
-      rampUsers(200) during(50 seconds)
+      rampUsers(2000) during(200 seconds)
     )).protocols(httpProtocol)
 }
