@@ -52,6 +52,19 @@ curl http://localhost:9200/
 Create an Index (This will be created later when the tests are run so this step can be skipped)
 curl -X PUT http://localhost:9200/drastic-solid-server-results
 ```
+
+### Create test data and index it in Elasticsearch with Logstash
+```shell
+cd data
+
+./createTestData.sh
+
+curl https://artifacts.elastic.co/downloads/logstash/logstash-6.5.3.tar.gz \
+  | tar -xzC ~/tools
+
+./loadElasticsearch.sh
+```
+
  
 **Optional Step**
 
