@@ -23,10 +23,11 @@ datasources:
     url: http://elasticsearch:9200
     password: ''
     user: ''
-    database: metricbeat-7.2.0-2019.08.07-000001
+    database: "[metricbeat-7.2.0-]YYYY.MM.DD-*"
     basicAuth: false
     jsonData:
       esVersion: 70
+      interval: "Daily"
       maxConcurrentShardRequests: 256
       timeField: "@timestamp"
     version: 1
