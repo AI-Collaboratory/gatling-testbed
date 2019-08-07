@@ -84,11 +84,11 @@
 			<artifactId>gatling-recorder</artifactId>
 			<scope>provided</scope>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>umd.ciber</groupId>-->
-<!--			<artifactId>ciber-sampling</artifactId>-->
-<!--			<version>0.0.1-SNAPSHOT</version>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>umd.ciber</groupId>
+			<artifactId>ciber-sampling</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

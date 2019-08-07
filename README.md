@@ -71,6 +71,7 @@ docker run --name cassandra -p 9042:9042 --network performance-net --rm -d trell
 
 docker exec -i cassandra cqlsh -f /load.cql
 ```
+**Note:** you need to wait for cassandra to full start before you run the script or else you will get errors.
 
 ## Checking the schema in the Cassandra container
 
@@ -108,7 +109,9 @@ Start the testbed container
 Install and run Grafana:
 
 ```shell
-docker run --name grafana -d -p 3000:3000 --net performance-net grafana/grafana
+docker build --tag=drastic/grafana grafana/
+
+docker run -p 3000:3000 --rm -v $(pwd)/grafana/provisioning:/etc/grafana/provisioning --net performance-net drastic/grafana
 ```
 
 http://localhost:3000

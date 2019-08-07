@@ -1,18 +1,10 @@
 package ldp
 
-import scala.concurrent.duration._
-import io.gatling.commons.validation._
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
-import io.gatling.jdbc.Predef._
+import umd.ciber.ciber_sampling.CiberQueryBuilder
 
-import java.util.concurrent.ThreadLocalRandom
-
-//import ciber.CiberQueryBuilder
-import scala.util.Random
-import java.net.URLEncoder
-import java.io.InputStream
-//import umd.ciber.ciber_sampling.CiberQueryBuilder
+import scala.concurrent.duration._
 
 class StressTestIngest extends Simulation {
 
@@ -23,13 +15,14 @@ class StressTestIngest extends Simulation {
   val httpProtocol = http.baseUrl(BASE_URL)
 
   // Data: Unlimited newly random slice as URLs, files less than 20GB
-//  val seed = new java.lang.Float(.19855721)
-//  val cqbiter = new CiberQueryBuilder().randomSeed(seed).limit(20000).minBytes(100).maxBytes(20e6.toInt).iterator()
+  val seed = new java.lang.Float(.19855721)
+  val cqbiter = new CiberQueryBuilder().randomSeed(seed).limit(20000).minBytes(100).maxBytes(20e6.toInt).iterator()
   val feeder = Iterator.continually({
-  val path = STRESS_DATA +  ThreadLocalRandom.current.nextInt(20)
+    val path = cqbiter.next
     val title = path.substring(path.lastIndexOf('/')+1, path.length())
     Map("INPUTSTREAM" -> new java.io.FileInputStream(path), "PATH" -> path, "TITLE" -> title)
   })
+
 
   // Ingest all files as LDPNR contained by an LDPR
   val scnIngest = scenario("ingest")

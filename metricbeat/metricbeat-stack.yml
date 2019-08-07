@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   metricbeat:
-    image: gregjan/ciber-metricbeat:latest
+    image: drastic/metricbeat
     command: metricbeat -e -system.hostfs=/hostfs
     deploy:
       mode: global # One docker container per node

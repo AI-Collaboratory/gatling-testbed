@@ -23,7 +23,7 @@ datasources:
     url: http://elasticsearch:9200
     password: ''
     user: ''
-    database: metricbeat-7.2.0-2019.08.06-000001
+    database: metricbeat-7.2.0-2019.08.07-000001
     basicAuth: false
     jsonData:
       esVersion: 70
