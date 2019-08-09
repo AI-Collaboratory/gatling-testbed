@@ -53,18 +53,6 @@ Create an Index (This will be created later when the tests are run so this step 
 curl -X PUT http://localhost:9200/drastic-solid-server-results
 ```
 
-### Create test data and index it in Elasticsearch with Logstash
-```shell
-cd data
-
-./createTestData.sh
-
-curl https://artifacts.elastic.co/downloads/logstash/logstash-6.5.3.tar.gz \
-  | tar -xzC ~/tools
-
-./loadElasticsearch.sh
-```
-
  
 **Optional Step**
 
@@ -73,6 +61,14 @@ docker run -d  -p 5601:5601 -h kibana --name kibana --rm --net performance-net k
 ```
 
 http://localhost:5601
+
+### Create test data and index it in Elasticsearch with Logstash
+```shell
+
+docker build --tag=drastic/sample-data sampleData/
+
+docker run -d -v nfs-ciber:/export/ciber --rm --net performance-net drastic/sample-data:latest
+```
 
 ## Setup Cassandra container and load schema needed for Trellis
 Run the following commands:
@@ -144,5 +140,5 @@ http://localhost:3000
 ```shell
 docker build --build-arg configFile=metricbeat-dev.yml --tag=drastic/metricbeat metricbeat/
 
-docker run --name metricbeat --net performance-net --rm --volume=/var/run/docker.sock:/var/run/docker.sock drastic/metricbeat
+docker run -d --name metricbeat --net performance-net --rm --volume=/var/run/docker.sock:/var/run/docker.sock drastic/metricbeat
 ```

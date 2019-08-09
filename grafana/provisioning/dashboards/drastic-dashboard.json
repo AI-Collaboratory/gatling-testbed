@@ -52,7 +52,7 @@
         "#d44a3a"
       ],
       "datasource": "DS_GATLING_LDP TESTS",
-      "format": "none",
+      "format": "locale",
       "gauge": {
         "maxValue": 100,
         "minValue": 0,
@@ -154,7 +154,7 @@
         "#d44a3a"
       ],
       "datasource": "DS_GATLING_LDP TESTS",
-      "format": "none",
+      "format": "locale",
       "gauge": {
         "maxValue": 100,
         "minValue": 0,
@@ -353,7 +353,7 @@
       },
       "yaxes": [
         {
-          "format": "short",
+          "format": "locale",
           "label": "Request Count",
           "logBase": 1,
           "max": null,
@@ -361,7 +361,7 @@
           "show": true
         },
         {
-          "format": "short",
+          "format": "locale",
           "label": "Active Users",
           "logBase": 1,
           "max": "6",
