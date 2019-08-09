@@ -7,3 +7,6 @@ target/
 .cache-tests
 .externalToolBuilders/
 bin/
+.idea/
+*.iml
+dependency-reduced-pom.xml

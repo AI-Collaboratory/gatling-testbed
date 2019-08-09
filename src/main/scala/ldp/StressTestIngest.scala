@@ -1,16 +1,13 @@
 package ldp
 
-import scala.concurrent.duration._
-import io.gatling.commons.validation._
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
-import io.gatling.jdbc.Predef._
-import scala.util.Random
-import java.net.URLEncoder
-import java.io.InputStream
 import umd.ciber.ciber_sampling.CiberQueryBuilder
 
+import scala.concurrent.duration._
+
 class StressTestIngest extends Simulation {
+
 
   val BASE_URL = System.getenv("LDP_URL")
   val headers_turtle = Map("Content-Type" -> "text/turtle")
@@ -23,7 +20,8 @@ class StressTestIngest extends Simulation {
     val path = cqbiter.next
     val title = path.substring(path.lastIndexOf('/')+1, path.length())
     Map("INPUTSTREAM" -> new java.io.FileInputStream(path), "PATH" -> path, "TITLE" -> title)
-    })
+  })
+
 
   // Ingest all files as LDPNR contained by an LDPR
   val scnIngest = scenario("ingest")
@@ -50,7 +48,7 @@ class StressTestIngest extends Simulation {
 
   setUp(
     scnIngest.inject(
-        nothingFor(10 seconds),
-        rampUsers(2000) during(200 seconds)
+      nothingFor(10 seconds),
+      rampUsers(2000) during(200 seconds)
     )).protocols(httpProtocol)
 }
