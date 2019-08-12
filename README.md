@@ -67,7 +67,7 @@ http://localhost:5601
 
 docker build --tag=drastic/sample-data sampleData/
 
-docker run -d -v nfs-ciber:/export/ciber --rm --net performance-net drastic/sample-data:latest
+docker run -e ELASTICSEARCH_URL="http://elasticsearch:9200" -d -v nfs-ciber:/export/ciber --rm --net performance-net drastic/sample-data:latest
 ```
 
 ## Setup Cassandra container and load schema needed for Trellis
@@ -107,9 +107,7 @@ This builds the project and create a docker image containing the Gatling test su
 The Test Bed has a dependency on a small library that is used for searching for sample test data from Elasticsearch.
 
 ```shell
-clone git@github.com:UMD-DRASTIC/ciber-sampling.git
-cd ciber-sampling
-mvn clean install
+
 ```
 Then you can build the Test bed.
 

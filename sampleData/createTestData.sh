@@ -10,6 +10,7 @@ OUTPUT=/export/ciber
 BINARIES=$OUTPUT/stress/binaries
 EXT=.txt
 CIBER_INDEX=ciber-inventory
+INDEX_URL=$ELASTICSEARCH_URL/$CIBER_INDEX
 
 mkdir -p $BINARIES
 
@@ -30,8 +31,8 @@ find $OUTPUT -type f -printf '%f\t./stress/binaries\t1\t%s\n' > $OUTPUT/inventor
 
 echo "Created inventory file at $OUTPUT/inventory.txt"
 
-echo "Deleting the $CIBER_INDEX index from Elasticsearh"
-curl -X DELETE http://elasticsearch:9200/$CIBER_INDEX
+echo "Deleting the index from Elasticsearh [$INDEX_URL]"
+curl -X DELETE $INDEX_URL
 
 echo "Piping Gatling logs into Logstash."
 /usr/share/logstash/bin/logstash --path.settings . -f /ciber-inventory.conf
