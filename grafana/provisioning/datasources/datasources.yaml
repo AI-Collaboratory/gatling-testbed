@@ -8,7 +8,7 @@ datasources:
     url: http://elasticsearch:9200
     password: ''
     user: ''
-    database: drastic-solid-server-results
+    database: gatling-ldp-*
     basicAuth: false
     jsonData:
        esVersion: 70

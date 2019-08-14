@@ -127,7 +127,7 @@ Install and run Grafana:
 ```shell
 docker build --tag=drastic/grafana grafana/
 
-docker run --name grafana -p 3000:3000 --rm -v $(pwd)/grafana/provisioning:/etc/grafana/provisioning --net performance-net drastic/grafana
+docker run --name grafana -p 3000:3000 --rm --net performance-net drastic/grafana
 ```
 
 http://localhost:3000
