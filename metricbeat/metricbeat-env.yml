@@ -13,4 +13,4 @@ metricbeat.modules:
   period: 10s
   enabled: true
 output.elasticsearch:
-  hosts: ["http://elasticsearch:9200"]
+  hosts: ["${ELASTICSEARCH_URL}"]

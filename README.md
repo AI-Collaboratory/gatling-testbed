@@ -127,7 +127,7 @@ Install and run Grafana:
 ```shell
 docker build --tag=drastic/grafana grafana/
 
-docker run --name grafana -p 3000:3000 -e ELASTICSEARCH_URL="http://elasticsearch:9200" --rm --net performance-net drastic/grafana
+docker run -d --name grafana -p 3000:3000 -e ELASTICSEARCH_URL="http://elasticsearch:9200" --rm --net performance-net drastic/grafana
 ```
 
 http://localhost:3000
@@ -136,7 +136,7 @@ http://localhost:3000
 ## MetricBeat
 
 ```shell
-docker build --build-arg configFile=metricbeat-dev.yml --tag=drastic/metricbeat metricbeat/
+docker build --build-arg configFile=metricbeat-env.yml --tag=drastic/metricbeat metricbeat/
 
-docker run -d --name metricbeat --net performance-net --rm --volume=/var/run/docker.sock:/var/run/docker.sock drastic/metricbeat
+docker run -d --name metricbeat -e ELASTICSEARCH_URL="http://elasticsearch:9200" --rm --net performance-net --volume=/var/run/docker.sock:/var/run/docker.sock drastic/metricbeat
 ```
