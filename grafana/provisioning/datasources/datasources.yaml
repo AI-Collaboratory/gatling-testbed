@@ -5,7 +5,7 @@ datasources:
     isDefault: true
     type: elasticsearch
     access: proxy
-    url: http://elasticsearch:9200
+    url: ${ELASTICSEARCH_URL}
     password: ''
     user: ''
     database: gatling-ldp-*
