@@ -20,7 +20,7 @@ datasources:
     isDefault: false
     type: elasticsearch
     access: proxy
-    url: http://elasticsearch:9200
+    url: ${ELASTICSEARCH_URL}
     password: ''
     user: ''
     database: "[metricbeat-7.2.0-]YYYY.MM.DD-*"
