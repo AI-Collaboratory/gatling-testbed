@@ -23,7 +23,7 @@ datasources:
     url: ${ELASTICSEARCH_URL}
     password: ''
     user: ''
-    database: "[metricbeat-7.2.0-]YYYY.MM.DD-*"
+    database: "[metricbeat-6.0.0-]YYYY.MM.DD*"
     basicAuth: false
     jsonData:
       esVersion: 60

@@ -45,7 +45,7 @@ docker network create performance-net
 ```shell
 docker pull elasticsearch:7.0.0
 
-docker run -d -p 9200:9200 -p 9300:9300 -it -h elasticsearch -e "discovery.type=single-node" --name elasticsearch --rm --net performance-net elasticsearch:7.0.0
+docker run -d -p 9200:9200 -p 9300:9300 -it -h elasticsearch -e "discovery.type=single-node" -v es-data:/usr/share/elasticsearch/data --name elasticsearch --rm --net performance-net elasticsearch:6.8.2
 
 curl http://localhost:9200/
 
@@ -100,6 +100,14 @@ docker run -e CASSANDRA_CONTACT_ADDRESS="cassandra" -e CASSANDRA_CONTACT_PORT="9
 ```
 
 
+## MetricBeat
+
+```shell
+docker build --build-arg configFile=metricbeat-env.yml --tag=drastic/metricbeat metricbeat/
+
+docker run -d --name metricbeat -e ELASTICSEARCH_URL="http://elasticsearch:9200" --rm --net performance-net --volume=/var/run/docker.sock:/var/run/docker.sock drastic/metricbeat
+```
+
 ## Build the Test Bed
 
 This builds the project and create a docker image containing the Gatling test suites:
@@ -117,7 +125,7 @@ mvn clean install
 
 Start the testbed container
 ```shell
-./run.sh
+./run.sh -s "http://"enterpriseserver_trellis_1:8082/
 ```
 
 ## Setting up Grafana
@@ -133,10 +141,3 @@ docker run -d --name grafana -p 3000:3000 -e ELASTICSEARCH_URL="http://elasticse
 http://localhost:3000
 
 
-## MetricBeat
-
-```shell
-docker build --build-arg configFile=metricbeat-env.yml --tag=drastic/metricbeat metricbeat/
-
-docker run -d --name metricbeat -e ELASTICSEARCH_URL="http://elasticsearch:9200" --rm --net performance-net --volume=/var/run/docker.sock:/var/run/docker.sock drastic/metricbeat
-```

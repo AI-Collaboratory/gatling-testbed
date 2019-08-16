@@ -40,6 +40,6 @@ docker run -e SIM_CLASS="ldp.StressTestIngest" -e LDP_URL=$SERVER_UNDER_TEST_URL
   -v nfs-ciber:/srv/ciber \
   -e INDEX_NAME=$INDEX_NAME \
   --name gatling-performance-tests \
-#  --net performance-net \
+  --net performance-net \
   --rm \
   gregjan/gatling-testbed-worker:0.5.0-SNAPSHOT
