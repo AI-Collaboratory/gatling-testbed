@@ -26,7 +26,7 @@ fi
 
 if [ -z $SERVER_UNDER_TEST_URL ]
   then
-    SERVER_UNDER_TEST_URL="http://trellis:8080"
+    SERVER_UNDER_TEST_URL="http://enterpriseserver_trellis_1:8080"
 fi
 
 printf "Elasticsearch is %s\n" "$ELASTICSEARCH_URL"
@@ -34,7 +34,7 @@ printf "Index is %s\n" "$INDEX_NAME"
 printf "Server under test is %s\n" "$SERVER_UNDER_TEST_URL"
 
 
-docker run -e SIM_CLASS="ldp.StressTestIngest" -e LDP_URL=$SERVER_UNDER_TEST_URL \
+docker run -e SIM_CLASS="ldp.SolidStressTestIngest" -e LDP_URL=$SERVER_UNDER_TEST_URL \
   -e ELASTICSEARCH_URL=$ELASTICSEARCH_URL \
   -e LOCAL_PATH_PREFIX="/srv/ciber" \
   -v nfs-ciber:/srv/ciber \

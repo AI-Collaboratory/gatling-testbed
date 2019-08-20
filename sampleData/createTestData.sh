@@ -27,7 +27,7 @@ for i in {3500..4000}; do dd if=/dev/urandom bs=1024 count=$((1 + RANDOM % 10000
 
 echo "Created sample data into: $BINARIES"
 
-find $OUTPUT -type f -printf '%f\t./stress/binaries\t1\t%s\n' > $OUTPUT/inventory.txt
+find $BINARIES -type f -printf '%f\t./stress/binaries\t1\t%s\n' > $OUTPUT/inventory.txt
 
 echo "Created inventory file at $OUTPUT/inventory.txt"
 
@@ -41,12 +41,12 @@ echo "Inventory has been piped to Elasticsearh via logstash."
 DATE=$(date '+%Y%m%d-%H%M%S')
 echo "${DATE}" > ${OUTPUT}/sample-data.done
 
-START_TIME=`date '+%s'`
-CONT=1
-while [ "${CONT}" == "1" ] ; do
-  sleep 60
-  CUR_TIME=`date '+%s'`
-  ELAPSED_TIME=$(expr $CUR_TIME - $START_TIME)
-  echo "All data loaded.  Uptime since completion: ${ELAPSED_TIME} seconds"
-done
+#START_TIME=`date '+%s'`
+#CONT=1
+#while [ "${CONT}" == "1" ] ; do
+#  sleep 60
+#  CUR_TIME=`date '+%s'`
+#  ELAPSED_TIME=$(expr $CUR_TIME - $START_TIME)
+#  echo "All data loaded.  Uptime since completion: ${ELAPSED_TIME} seconds"
+#done
 

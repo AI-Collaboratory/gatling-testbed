@@ -43,7 +43,7 @@ docker network create performance-net
 ## Setting up Elastic Search
 
 ```shell
-docker pull elasticsearch:7.0.0
+docker pull elasticsearch:6.8.2
 
 docker run -d -p 9200:9200 -p 9300:9300 -it -h elasticsearch -e "discovery.type=single-node" -v es-data:/usr/share/elasticsearch/data --name elasticsearch --rm --net performance-net elasticsearch:6.8.2
 
@@ -125,7 +125,7 @@ mvn clean install
 
 Start the testbed container
 ```shell
-./run.sh -s "http://"enterpriseserver_trellis_1:8082/
+./run.sh -s "http://"enterpriseserver_trellis_1:8080/
 ```
 
 ## Setting up Grafana
