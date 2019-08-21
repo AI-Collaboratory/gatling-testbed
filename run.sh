@@ -34,7 +34,10 @@ printf "Index is %s\n" "$INDEX_NAME"
 printf "Server under test is %s\n" "$SERVER_UNDER_TEST_URL"
 
 
-docker run -e SIM_CLASS="ldp.SolidStressTestIngest" -e LDP_URL=$SERVER_UNDER_TEST_URL \
+docker run -e SIM_CLASS="ldp.SolidStressTestIngest" \
+  -e SIM_USERS="2000" \
+  -e SIM_RAMP="200" \
+  -e LDP_URL=$SERVER_UNDER_TEST_URL \
   -e ELASTICSEARCH_URL=$ELASTICSEARCH_URL \
   -e LOCAL_PATH_PREFIX="/srv/ciber" \
   -v nfs-ciber:/srv/ciber \
