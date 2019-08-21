@@ -1,6 +1,6 @@
 package ldp
 
-import io.gatling.core.Predef._
+import io.gatling.core.Predef.{details, _}
 import io.gatling.http.Predef._
 import umd.ciber.ciber_sampling.CiberQueryBuilder
 
@@ -186,5 +186,14 @@ class SolidStressTestIngest extends Simulation {
     createAndDeleteIngest.inject(
       nothingFor(10 seconds),
       rampUsers(users20Percent) during (SIM_RAMP_TIME seconds))
-  ).protocols(httpProtocol)
+  )
+    .protocols(httpProtocol)
+    .assertions(
+      global.responseTime.max.lt(200),
+      global.successfulRequests.percent.gt(99),
+      details("Get RDF Resource").requestsPerSec.between(5, 50),
+      details("Create non-RDF binary").responseTime.max.lt(150),
+      details("Update RDF Resource").responseTime.max.lt(100),
+      details("Delete Resource").responseTime.max.lt(80)
+    )
 }
