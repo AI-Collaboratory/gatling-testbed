@@ -10,6 +10,9 @@ TESTRUN_DATA ##${TESTRUN_DATA}## \\
 END
 echo "All data has been piped to logstash."
 
+cp -r /usr/share/gatling-charts-highcharts-bundle-${GATLING_VERSION}/results/* /local/gatling/results
+echo "Copied Gatling results directory to /local/gatling/results"
+
 START_TIME=`date '+%s'`
 CONT=1
 while [ "${CONT}" == "1" ] ; do
