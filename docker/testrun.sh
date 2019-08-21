@@ -10,3 +10,11 @@ TESTRUN_DATA ##${TESTRUN_DATA}## \\
 END
 echo "All data has been piped to logstash."
 
+START_TIME=`date '+%s'`
+CONT=1
+while [ "${CONT}" == "1" ] ; do
+  sleep 60
+  CUR_TIME=`date '+%s'`
+  ELAPSED_TIME=$(expr $CUR_TIME - $START_TIME)
+  echo "All tests complete.  Uptime since completion: ${ELAPSED_TIME} seconds"
+done

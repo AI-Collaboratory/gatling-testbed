@@ -10,11 +10,9 @@ class SolidStressTestIngest extends Simulation {
 
 
   val BASE_URL = System.getenv("LDP_URL")
-  val SIM_USERS:  Int = Integer.valueOf(System.getenv().getOrDefault("SIM_USERS", "2000"))
-  val SIM_DURATION: Int = Integer.valueOf(System.getenv().getOrDefault("SIM_DURATION", "200"))
-
-  val headers_turtle = Map("Content-Type" -> "text/turtle")
   val httpProtocol = http.baseUrl(BASE_URL)
+  val SIM_USERS: Int = Integer.getInteger("users", 2000)
+  val SIM_RAMP_TIME: Long = java.lang.Long.getLong("ramp", 200L)
 
   // Data: Unlimited newly random slice as URLs, files less than 20GB
   val seed = new java.lang.Float(.19855721)
@@ -25,21 +23,21 @@ class SolidStressTestIngest extends Simulation {
     Map("INPUTSTREAM" -> new java.io.FileInputStream(path), "PATH" -> path, "TITLE" -> title)
   })
 
+  val LINK = "Link"
+  val RDF_SOURCE_TYPE = "<http://www.w3.org/ns/ldp#RDFSource>; rel=\"type\""
+  val BASIC_CONTAINER_TYPE = "<http://www.w3.org/ns/ldp#BasicContainer>; rel=\"type\""
+  val HEADERS_TURTLE = Map("Content-Type" -> "text/turtle")
+  val HEADERS_OCTET_STREAM = Map("Content-Type" -> "application/octet-stream")
 
-  object Search {
+  val CONTAINER_KEY = "Container"
+  val RDF_SOURCE_KEY = "RDFSource"
+  val NON_RDF_SOURCE_KEY = "NonRDFSource"
+  val LOCATION = "Location"
 
-    val searchContainer = exec(http("Get Container")
-      .get("${Container}")
-      .check(status.is(200)))
+  val CONTAINER_LOOKUP = "${Container}"
+  val RDF_SOURCE_LOOKUP = "${RDFSource}"
 
-    val searchRdfResource = exec(http("Get RDF Resource")
-      .get("${RDFSource}")
-      .check(status.is(200)))
-
-    val searchNonRdfResource = exec(http("Get Non RDF Resource")
-      .get("${NonRDFSource}")
-      .check(status.is(200)))
-  }
+  val NON_RDF_SOURCE_LOOKUP = "${NonRDFSource}"
 
   val CONTAINER_RDF =
     """
@@ -66,42 +64,50 @@ class SolidStressTestIngest extends Simulation {
           foaf:gender "male"@en.
     """
 
-  object Resource {
+  object Search {
 
-    val CONTAINER_KEY = "Container"
-    val CONTAINER_VAR = "${Container}"
-    val RDF_SOURCE_KEY = "RDFSource"
-    val RDF_SOURCE_VAR = "${RDFSource}"
-    val NON_RDF_SOURCE_KEY = "NonRDFSource"
-    val NON_RDF_SOURCE_VAR = "${NonRDFSource}"
+    val searchContainer = exec(http("Get Container")
+      .get(CONTAINER_LOOKUP)
+      .check(status.is(200)))
+
+    val searchRdfResource = exec(http("Get RDF Resource")
+      .get(RDF_SOURCE_LOOKUP)
+      .check(status.is(200)))
+
+    val searchNonRdfResource = exec(http("Get Non RDF Resource")
+      .get(NON_RDF_SOURCE_LOOKUP)
+      .check(status.is(200)))
+  }
+
+  object Resource {
 
     val createContainer = exec(http("Create Container")
       .post(BASE_URL)
-      .headers(headers_turtle)
-      .header("Link", "<http://www.w3.org/ns/ldp#BasicContainer>; rel=\"type\"")
+      .headers(HEADERS_TURTLE)
+      .header(LINK, BASIC_CONTAINER_TYPE)
       .body(StringBody(CONTAINER_RDF))
-      .check(status.in(201, 200), header("Location").saveAs(CONTAINER_KEY))
+      .check(status.in(201, 200), header(LOCATION).saveAs(CONTAINER_KEY))
     )
 
     val createRdf = exec(http("Create RDF Resource")
-      .post(CONTAINER_VAR)
-      .headers(headers_turtle)
-      .header("Link", "<http://www.w3.org/ns/ldp#RDFSource>; rel=\"type\"")
+      .post(CONTAINER_LOOKUP)
+      .headers(HEADERS_TURTLE)
+      .header(LINK, RDF_SOURCE_TYPE)
       .body(StringBody(RESOURCE_RDF))
-      .check(status.in(201, 200), header("Location").saveAs(RDF_SOURCE_KEY)))
+      .check(status.in(201, 200), header(LOCATION).saveAs(RDF_SOURCE_KEY)))
       .pause(2 seconds)
 
     val createNonRdfResource = exec(http("Create non-RDF binary")
-      .post(CONTAINER_VAR)
-      .header("Content-type", "application/octet-stream")
+      .post(CONTAINER_LOOKUP)
+      .headers(HEADERS_OCTET_STREAM)
       .body(RawFileBody("${PATH}"))
-      .check(status.in(201, 200), header("Location").saveAs(NON_RDF_SOURCE_KEY)))
+      .check(status.in(201, 200), header(LOCATION).saveAs(NON_RDF_SOURCE_KEY)))
 
     val updateRdfMultipleTimes = repeat(10, "n") {
       exec(http("Update RDF Resource")
-        .put(RDF_SOURCE_VAR)
-        .headers(headers_turtle)
-        .header("Link", "<http://www.w3.org/ns/ldp#RDFSource>; rel=\"type\"")
+        .put(RDF_SOURCE_LOOKUP)
+        .headers(HEADERS_TURTLE)
+        .header(LINK, RDF_SOURCE_TYPE)
         .body(StringBody(
           """
             @prefix foaf: <http://xmlns.com/foaf/0.1/>.
@@ -126,15 +132,15 @@ class SolidStressTestIngest extends Simulation {
     }
 
     val deleteContainer = exec(http("Delete Resource")
-      .delete(CONTAINER_VAR)
+      .delete(CONTAINER_LOOKUP)
       .check(status.is(204)))
 
     val deleteRdfResource = exec(http("Delete Resource")
-      .delete(RDF_SOURCE_VAR)
+      .delete(RDF_SOURCE_LOOKUP)
       .check(status.is(204)))
 
     val deleteNonRdfResource = exec(http("Delete Resource")
-      .delete(NON_RDF_SOURCE_VAR)
+      .delete(NON_RDF_SOURCE_LOOKUP)
       .check(status.is(204)))
 
   }
@@ -161,20 +167,24 @@ class SolidStressTestIngest extends Simulation {
       Resource.createNonRdfResource,
       Resource.updateRdfMultipleTimes)
 
-  private val USERS_60_PERCENT: Int = SIM_USERS - (SIM_USERS * 40) / 100
-  private val USERS_20_PERCENT: Int = (SIM_USERS * 20) / 100
+  /*
+   * Here we want to split the users into groups of tests. 60% of the users will be creating and getting
+   * resources, 20% will be creating and updating, and the last 20% creates and deletes resources.
+   */
+  private val users60Percent: Int = SIM_USERS - (SIM_USERS * 40) / 100
+  private val users20Percent: Int = (SIM_USERS * 20) / 100
 
   setUp(
     createAndGetIngest.inject(
       nothingFor(2 seconds),
-      rampUsers(USERS_60_PERCENT) during (SIM_DURATION seconds)),
+      rampUsers(users60Percent) during (SIM_RAMP_TIME seconds)),
 
     createAndUpdateIngest.inject(
       nothingFor(5 seconds),
-      rampUsers(USERS_20_PERCENT) during (SIM_DURATION seconds)),
+      rampUsers(users20Percent) during (SIM_RAMP_TIME seconds)),
 
     createAndDeleteIngest.inject(
       nothingFor(10 seconds),
-      rampUsers(USERS_20_PERCENT) during (SIM_DURATION seconds))
+      rampUsers(users20Percent) during (SIM_RAMP_TIME seconds))
   ).protocols(httpProtocol)
 }
