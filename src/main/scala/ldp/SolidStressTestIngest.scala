@@ -1,5 +1,7 @@
 package ldp
 
+import java.util
+
 import io.gatling.core.Predef.{details, _}
 import io.gatling.http.Predef._
 import umd.ciber.ciber_sampling.CiberQueryBuilder
@@ -16,12 +18,49 @@ class SolidStressTestIngest extends Simulation {
 
   // Data: Unlimited newly random slice as URLs, files less than 20GB
   val seed = new java.lang.Float(.19855721)
-  val cqbiter = new CiberQueryBuilder().randomSeed(seed).limit(20000).minBytes(100).maxBytes(20e6.toInt).iterator()
+  val cqbiter: util.Iterator[String] = new CiberQueryBuilder()
+    .excludeExtensions("ttl")
+    .limit(2000)
+    .randomSeed(seed).minBytes(100).maxBytes(20e6.toInt).iterator()
+
+  // Data: Unlimited newly random slice as URLs, files less than 20GB
+  val rdfCqbiter: util.Iterator[String] = new CiberQueryBuilder()
+    .includeExtensions("ttl")
+    .limit(2000)
+    .randomSeed(seed).minBytes(100).maxBytes(20e6.toInt).iterator()
+
+  // Need to cache the results and loop through them again and again
+  var binaryFileCache = loadCache(cqbiter)
+  var rdfFileCache = loadCache(rdfCqbiter)
+
   val feeder = Iterator.continually({
-    val path = cqbiter.next
+    val path = binaryFileCache.head
+
+    // rotate the cache for the next iteration
+    binaryFileCache = binaryFileCache.drop(1) ++ binaryFileCache.take(1)
     val title = path.substring(path.lastIndexOf('/') + 1, path.length())
-    Map("INPUTSTREAM" -> new java.io.FileInputStream(path), "PATH" -> path, "TITLE" -> title)
+
+
+    val rdfPath = rdfFileCache.head
+    // rotate the cache for the next iteration
+    rdfFileCache = rdfFileCache.drop(1) ++ rdfFileCache.take(1)
+    val rdfTitle = rdfPath.substring(rdfPath.lastIndexOf('/') + 1, rdfPath.length())
+
+
+    Map("PATH" -> path, "TITLE" -> title,
+      "RDF_PATH" -> rdfPath, "RDF_TITLE" -> rdfTitle)
   })
+
+
+  private def loadCache(iter: util.Iterator[String]): List[String] = {
+    var cache = List[String]()
+    while (iter.hasNext) {
+      val path = iter.next
+      cache = path :: cache
+    }
+
+    cache
+  }
 
   val LINK = "Link"
   val RDF_SOURCE_TYPE = "<http://www.w3.org/ns/ldp#RDFSource>; rel=\"type\""
@@ -43,25 +82,9 @@ class SolidStressTestIngest extends Simulation {
     """
       @prefix dcterms: <http://purl.org/dc/terms/> .
       <> dcterms:title "${TITLE}" ;
-         dcterms:source "${PATH}" .
-    """
-
-  val RESOURCE_RDF =
-    """
-      @prefix foaf: <http://xmlns.com/foaf/0.1/>.
-      @prefix vcard: <http://www.w3.org/2006/vcard/ns#>.
-      @prefix schem: <http://schema.org/>.
-      @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
-
-      <>
-          a schem:Person, vcard:Person;
-          rdfs:label "Joe Bloggs"@en;
-          foaf:name "Joe";
-          foaf:givenName "Bloggs"@en;
-          foaf:familyName "Bloggs"@en;
-          foaf:birthday "01-01";
-          foaf:age 43;
-          foaf:gender "male"@en.
+         dcterms:source "${PATH}" ;
+         dcterms:title "${RDF_TITLE}" ;
+         dcterms:source "${RDF_PATH}" .
     """
 
   object Search {
@@ -93,7 +116,7 @@ class SolidStressTestIngest extends Simulation {
       .post(CONTAINER_LOOKUP)
       .headers(HEADERS_TURTLE)
       .header(LINK, RDF_SOURCE_TYPE)
-      .body(StringBody(RESOURCE_RDF))
+      .body(RawFileBody("${RDF_PATH}"))
       .check(status.in(201, 200), header(LOCATION).saveAs(RDF_SOURCE_KEY)))
       .pause(2 seconds)
 
@@ -147,7 +170,7 @@ class SolidStressTestIngest extends Simulation {
 
   val createAndGetIngest = scenario("Create and Get RDF and Non RDF Resources")
     .feed(feeder)
-    .exec(Resource.createContainer, Search.searchContainer,
+    .exec(Resource.createContainer,
       Resource.createRdf, Search.searchRdfResource,
       Resource.createNonRdfResource, Search.searchNonRdfResource)
 

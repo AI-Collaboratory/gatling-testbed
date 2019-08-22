@@ -26,7 +26,7 @@ fi
 
 if [ -z $SERVER_UNDER_TEST_URL ]
   then
-    SERVER_UNDER_TEST_URL="http://enterpriseserver_trellis_1:8080"
+    SERVER_UNDER_TEST_URL="http://trellis:8080"
 fi
 
 printf "Elasticsearch is %s\n" "$ELASTICSEARCH_URL"

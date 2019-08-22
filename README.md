@@ -125,7 +125,7 @@ mvn clean install
 
 Start the testbed container
 ```shell
-./run.sh -s "http://"enterpriseserver_trellis_1:8080/
+./run.sh -s "http://trellis:8080/
 ```
 
 ## Setting up Grafana
