@@ -33,8 +33,8 @@ printf "Elasticsearch is %s\n" "$ELASTICSEARCH_URL"
 printf "Index is %s\n" "$INDEX_NAME"
 printf "Server under test is %s\n" "$SERVER_UNDER_TEST_URL"
 
-docker run -e SIM_CLASS="ldp.SolidStressTestIngest" \
-  -e SIM_USERS="2000" \
+docker run -e SIM_CLASS="ldp.StressTestIngest" \
+  -e SIM_USERS="20" \
   -e SIM_RAMP="200" \
   -e LDP_URL=$SERVER_UNDER_TEST_URL \
   -e ELASTICSEARCH_URL=$ELASTICSEARCH_URL \
