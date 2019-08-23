@@ -9,6 +9,18 @@ import umd.ciber.ciber_sampling.CiberQueryBuilder
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 
+/**
+ * This is the performance test that will be used to test a Solid LDP Server.
+ *
+ * It simulates 3 different scenarios:
+ * <ul>
+ * <li>Create and Get RDF and Non RDF Resources - 60% of the users
+ * <li>Create and Delete RDF and Non RDF Resources - 20% of the users
+ * <li>Create and Update RDF and Non RDF Resources - 20% of the users
+ * </ul>
+ *
+ * It also make assertions at the end of the test and fails the test under certain conditions.
+ */
 class SolidStressTestIngest extends Simulation {
 
   val BASE_URL = System.getenv("LDP_URL")

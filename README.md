@@ -115,7 +115,9 @@ This builds the project and create a docker image containing the Gatling test su
 The Test Bed has a dependency on a small library that is used for searching for sample test data from Elasticsearch.
 
 ```shell
-
+clone git@github.com:UMD-DRASTIC/ciber-sampling.git
+cd ciber-sampling
+mvn clean install
 ```
 Then you can build the Test bed.
 
