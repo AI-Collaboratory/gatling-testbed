@@ -6,10 +6,10 @@ import io.gatling.core.Predef.{details, _}
 import io.gatling.http.Predef._
 import umd.ciber.ciber_sampling.CiberQueryBuilder
 
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 
 class SolidStressTestIngest extends Simulation {
-
 
   val BASE_URL = System.getenv("LDP_URL")
   val httpProtocol = http.baseUrl(BASE_URL)
@@ -34,32 +34,37 @@ class SolidStressTestIngest extends Simulation {
   var rdfFileCache = loadCache(rdfCqbiter)
 
   val feeder = Iterator.continually({
-    val path = binaryFileCache.head
 
+    val (path, title) = nextFileInfo(binaryFileCache)
     // rotate the cache for the next iteration
-    binaryFileCache = binaryFileCache.drop(1) ++ binaryFileCache.take(1)
-    val title = path.substring(path.lastIndexOf('/') + 1, path.length())
+    binaryFileCache = rotate(binaryFileCache)
 
 
-    val rdfPath = rdfFileCache.head
+    val (rdfPath, rdfTitle) = nextFileInfo(rdfFileCache)
     // rotate the cache for the next iteration
-    rdfFileCache = rdfFileCache.drop(1) ++ rdfFileCache.take(1)
-    val rdfTitle = rdfPath.substring(rdfPath.lastIndexOf('/') + 1, rdfPath.length())
-
+    rdfFileCache = rotate(rdfFileCache)
 
     Map("PATH" -> path, "TITLE" -> title,
       "RDF_PATH" -> rdfPath, "RDF_TITLE" -> rdfTitle)
   })
 
 
-  private def loadCache(iter: util.Iterator[String]): List[String] = {
-    var cache = List[String]()
-    while (iter.hasNext) {
-      val path = iter.next
-      cache = path :: cache
-    }
+  private def nextFileInfo(list: List[String]): (String, String) = {
+    val path = list.head
+    val title = path.substring(path.lastIndexOf('/') + 1, path.length())
+    (path, title)
+  }
 
-    cache
+  private def rotate(list: List[String]): List[String] = {
+    list.drop(1) ++ list.take(1)
+  }
+
+  private def loadCache(iter: util.Iterator[String]): List[String] = {
+    var cache = ListBuffer[String]()
+    while (iter.hasNext) {
+      cache += iter.next
+    }
+    cache.toList
   }
 
   val LINK = "Link"
