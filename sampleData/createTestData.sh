@@ -45,16 +45,3 @@ echo "Piping Gatling logs into Logstash."
 /usr/share/logstash/bin/logstash --path.settings . -f /ciber-inventory.conf
 echo "Inventory has been piped to Elasticsearh via logstash."
 
-
-DATE=$(date '+%Y%m%d-%H%M%S')
-echo "${DATE}" > ${OUTPUT}/sample-data.done
-
-START_TIME=`date '+%s'`
-CONT=1
-while [ "${CONT}" == "1" ] ; do
-  sleep 60
-  CUR_TIME=`date '+%s'`
-  ELAPSED_TIME=$(expr $CUR_TIME - $START_TIME)
-  echo "All data loaded.  Uptime since completion: ${ELAPSED_TIME} seconds"
-done
-
