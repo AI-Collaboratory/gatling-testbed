@@ -1,4 +1,5 @@
 #!/bin/sh
+
 echo "Running Gatling load simulation."
 /usr/share/gatling-charts-highcharts-bundle-${GATLING_VERSION}/bin/gatling.sh --simulation $SIM_CLASS
 echo "Piping Gatling logs into Logstash."

@@ -5,13 +5,13 @@ datasources:
     isDefault: true
     type: elasticsearch
     access: proxy
-    url: http://elasticsearch:9200
+    url: ${ELASTICSEARCH_URL}
     password: ''
     user: ''
-    database: drastic-solid-server-results
+    database: gatling-ldp-*
     basicAuth: false
     jsonData:
-       esVersion: 70
+       esVersion: 60
        maxConcurrentShardRequests: 256
        timeField: "@timestamp"
     version: 1
@@ -20,13 +20,13 @@ datasources:
     isDefault: false
     type: elasticsearch
     access: proxy
-    url: http://elasticsearch:9200
+    url: ${ELASTICSEARCH_URL}
     password: ''
     user: ''
-    database: "[metricbeat-7.2.0-]YYYY.MM.DD-*"
+    database: "[metricbeat-6.0.0-]YYYY.MM.DD*"
     basicAuth: false
     jsonData:
-      esVersion: 70
+      esVersion: 60
       interval: "Daily"
       maxConcurrentShardRequests: 256
       timeField: "@timestamp"

@@ -1,0 +1,14 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#>.
+@prefix schem: <http://schema.org/>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+
+<>
+    a schem:Person, vcard:Person;
+    rdfs:label "Joe Bloggs"@en;
+    foaf:name "Joe";
+    foaf:givenName "Bloggs"@en;
+    foaf:familyName "Bloggs"@en;
+    foaf:birthday "01-01";
+    foaf:age 43;
+    foaf:gender "male"@en.

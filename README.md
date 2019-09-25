@@ -43,9 +43,9 @@ docker network create performance-net
 ## Setting up Elastic Search
 
 ```shell
-docker pull elasticsearch:7.0.0
+docker pull elasticsearch:6.8.2
 
-docker run -d -p 9200:9200 -p 9300:9300 -it -h elasticsearch -e "discovery.type=single-node" --name elasticsearch --rm --net performance-net elasticsearch:7.0.0
+docker run -d -p 9200:9200 -p 9300:9300 -it -h elasticsearch -e "discovery.type=single-node" -v es-data:/usr/share/elasticsearch/data --name elasticsearch --rm --net performance-net elasticsearch:6.8.2
 
 curl http://localhost:9200/
 
@@ -67,7 +67,7 @@ http://localhost:5601
 
 docker build --tag=drastic/sample-data sampleData/
 
-docker run -d -v nfs-ciber:/export/ciber --rm --net performance-net drastic/sample-data:latest
+docker run -e ELASTICSEARCH_URL="http://elasticsearch:9200" -d -v nfs-ciber:/export/ciber --rm --net performance-net drastic/sample-data:latest
 ```
 
 ## Setup Cassandra container and load schema needed for Trellis
@@ -100,6 +100,14 @@ docker run -e CASSANDRA_CONTACT_ADDRESS="cassandra" -e CASSANDRA_CONTACT_PORT="9
 ```
 
 
+## MetricBeat
+
+```shell
+docker build --build-arg configFile=metricbeat-env.yml --tag=drastic/metricbeat metricbeat/
+
+docker run -d --name metricbeat -e ELASTICSEARCH_URL="http://elasticsearch:9200" --rm --net performance-net --volume=/var/run/docker.sock:/var/run/docker.sock drastic/metricbeat
+```
+
 ## Build the Test Bed
 
 This builds the project and create a docker image containing the Gatling test suites:
@@ -119,7 +127,7 @@ mvn clean install
 
 Start the testbed container
 ```shell
-./run.sh
+./run.sh -s "http://trellis:8080/
 ```
 
 ## Setting up Grafana
@@ -129,16 +137,9 @@ Install and run Grafana:
 ```shell
 docker build --tag=drastic/grafana grafana/
 
-docker run --name grafana -p 3000:3000 --rm -v $(pwd)/grafana/provisioning:/etc/grafana/provisioning --net performance-net drastic/grafana
+docker run -d --name grafana -p 3000:3000 -e ELASTICSEARCH_URL="http://elasticsearch:9200" --rm --net performance-net drastic/grafana
 ```
 
 http://localhost:3000
 
 
-## MetricBeat
-
-```shell
-docker build --build-arg configFile=metricbeat-dev.yml --tag=drastic/metricbeat metricbeat/
-
-docker run -d --name metricbeat --net performance-net --rm --volume=/var/run/docker.sock:/var/run/docker.sock drastic/metricbeat
-```

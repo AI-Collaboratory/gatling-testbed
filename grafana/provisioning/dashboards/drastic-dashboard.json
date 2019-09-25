@@ -433,7 +433,7 @@
               "type": "avg"
             }
           ],
-          "query": "container.name:$container",
+          "query": "docker.container.name:$container",
           "refId": "A",
           "timeField": "@timestamp"
         }
@@ -656,7 +656,7 @@
               "type": "avg"
             }
           ],
-          "query": "container.name:$container",
+          "query": "docker.container.name:$container",
           "refId": "A",
           "timeField": "@timestamp"
         }
@@ -725,7 +725,7 @@
         "multi": false,
         "name": "container",
         "options": [],
-        "query": "{\"find\": \"terms\", \"field\": \"container.name\", \"size\": 1000}",
+        "query": "{\"find\": \"terms\", \"field\": \"docker.container.name\", \"size\": 1000}",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
